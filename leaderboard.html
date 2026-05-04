@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Xếp Hạng 🏆</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+
+            <div class="wedding-card">
+
+                <!-- Header -->
+                <div class="lb-header">
+                    <div style="font-size:2rem;margin-bottom:0.25rem;">🏆</div>
+                    <h2>Bảng Xếp Hạng</h2>
+                    <p style="font-size:0.85rem;opacity:0.8;margin:0.25rem 0 0;">
+                        💍 Bùi Thị Mỹ Dung &amp; Giang Minh Kiệt · 05.06.2026
+                    </p>
+                </div>
+
+                <!-- Subtitle bar -->
+                <div class="d-flex justify-content-between align-items-center px-3 py-2"
+                     style="background:#FFF5F7;border-bottom:1px solid #FFE4EC;">
+                    <span style="font-size:0.8rem;color:#aaa;">
+                        <i class="bi bi-circle-fill text-success me-1" style="font-size:0.6rem;"></i>
+                        Cập nhật tự động
+                    </span>
+                    <span id="totalPlayers" style="font-size:0.8rem;color:var(--rose);font-weight:700;">
+                        — người chơi
+                    </span>
+                </div>
+
+                <!-- Column labels -->
+                <div class="d-flex align-items-center px-3 pt-3 pb-1"
+                     style="font-size:0.72rem;color:#bbb;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">
+                    <div style="width:36px;min-width:36px;text-align:center;">#</div>
+                    <div class="flex-grow-1 ms-3">Tên</div>
+                    <div style="min-width:70px;text-align:right;">Điểm</div>
+                    <div style="min-width:52px;text-align:right;">Thời gian</div>
+                </div>
+
+                <!-- List -->
+                <div class="px-3 pb-3" id="listEl">
+                    <!-- populated by leaderboard.js -->
+                </div>
+
+                <!-- Loading indicator -->
+                <div id="loadingEl" class="text-center py-4">
+                    <div class="spinner-border text-danger" style="color:var(--rose)!important;" role="status">
+                        <span class="visually-hidden">Đang tải…</span>
+                    </div>
+                    <p class="mt-2 text-muted" style="font-size:0.85rem;">Đang tải dữ liệu…</p>
+                </div>
+
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex gap-2 mt-3">
+                <a href="index.html" class="btn-outline-wedding flex-fill text-center">
+                    <i class="bi bi-house me-1"></i>Trang chủ
+                </a>
+                <a href="quiz.html" class="btn btn-wedding flex-fill" style="border-radius:50px;">
+                    <i class="bi bi-play-fill me-1"></i>Chơi Quiz
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Floating petals -->
+<div class="petals-container" id="petalsContainer"></div>
+
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
+<script src="js/firebase-config.js"></script>
+<script src="js/leaderboard.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    window.addEventListener('load', initLeaderboard);
+
+    // Floating petals
+    (function() {
+        const container = document.getElementById('petalsContainer');
+        const emojis = ['🌸', '🌺', '🌼', '✨', '💮'];
+        for (let i = 0; i < 14; i++) {
+            const p = document.createElement('div');
+            p.className = 'petal';
+            p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            p.style.left              = Math.random() * 100 + 'vw';
+            p.style.fontSize          = (Math.random() * 12 + 9) + 'px';
+            p.style.animationDuration = (Math.random() * 6 + 9) + 's';
+            p.style.animationDelay    = (Math.random() * 12) + 's';
+            container.appendChild(p);
+        }
+    })();
+</script>
+</body>
+</html>

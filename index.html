@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Đám Cưới 💒</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+
+            <!-- Couple header -->
+            <div class="text-center mb-4">
+                <span class="rings-icon">💍</span>
+                <h1 class="wedding-title">Mỹ Dung</h1>
+                <span class="heart-divider">♥</span>
+                <h1 class="wedding-title">Minh Kiệt</h1>
+                <p class="wedding-date mt-2">05 · 06 · 2026</p>
+            </div>
+
+            <!-- Welcome card -->
+            <div class="wedding-card mb-4">
+                <div class="card-body p-4">
+                    <h4 class="text-center mb-1" style="color:var(--gold);font-family:'Playfair Display',serif;">
+                        🎊 Quiz Vui Đám Cưới
+                    </h4>
+                    <p class="text-center text-muted mb-4" style="font-size:0.9rem;">
+                        Bạn hiểu cặp đôi này đến đâu? Trả lời 10 câu hỏi và so tài cùng bạn bè nhé!
+                    </p>
+
+                    <!-- Stats -->
+                    <div class="row g-2 mb-4">
+                        <div class="col-4">
+                            <div class="stat-box">
+                                <div class="stat-number">10</div>
+                                <div class="stat-label">Câu hỏi</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-box">
+                                <div class="stat-number">30s</div>
+                                <div class="stat-label">Mỗi câu</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-box">
+                                <div class="stat-number">20K</div>
+                                <div class="stat-label">Điểm tối đa</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Name input -->
+                    <label for="playerName" class="form-label fw-semibold" style="font-size:0.9rem;">
+                        Nhập tên của bạn
+                    </label>
+                    <input
+                        type="text"
+                        id="playerName"
+                        class="form-control wedding-input text-center mb-3"
+                        placeholder="Tên của bạn..."
+                        maxlength="30"
+                        autocomplete="off"
+                    >
+
+                    <button class="btn btn-wedding w-100" onclick="startQuiz()">
+                        <i class="bi bi-play-fill me-2"></i>Bắt đầu Quiz!
+                    </button>
+                </div>
+            </div>
+
+            <!-- Leaderboard link -->
+            <div class="text-center">
+                <a href="leaderboard.html" class="btn-outline-wedding">
+                    <i class="bi bi-trophy me-1"></i>Xem Bảng Xếp Hạng
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Floating petals -->
+<div class="petals-container" id="petalsContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function startQuiz() {
+        const inp  = document.getElementById('playerName');
+        const name = inp.value.trim();
+        if (!name) {
+            inp.classList.add('is-invalid');
+            inp.placeholder = 'Vui lòng nhập tên nhé!';
+            inp.focus();
+            return;
+        }
+        inp.classList.remove('is-invalid');
+        sessionStorage.setItem('playerName', name);
+        window.location.href = 'quiz.html';
+    }
+
+    document.getElementById('playerName').addEventListener('keydown', e => {
+        if (e.key === 'Enter') startQuiz();
+        document.getElementById('playerName').classList.remove('is-invalid');
+    });
+
+    // Floating petals
+    (function createPetals() {
+        const container = document.getElementById('petalsContainer');
+        const emojis = ['🌸', '🌺', '🌼', '🌹', '✨', '💮'];
+        for (let i = 0; i < 18; i++) {
+            const p = document.createElement('div');
+            p.className = 'petal';
+            p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            p.style.left              = Math.random() * 100 + 'vw';
+            p.style.fontSize          = (Math.random() * 14 + 9) + 'px';
+            p.style.animationDuration = (Math.random() * 6 + 9) + 's';
+            p.style.animationDelay    = (Math.random() * 12) + 's';
+            container.appendChild(p);
+        }
+    })();
+</script>
+</body>
+</html>

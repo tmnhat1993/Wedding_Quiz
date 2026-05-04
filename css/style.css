@@ -1,0 +1,534 @@
+:root {
+    --pink: #E8A0B4;
+    --light-pink: #FFF0F3;
+    --rose: #C4687A;
+    --gold: #C9A84C;
+    --light-gold: #FFF8E1;
+    --cream: #FDF8F0;
+    --dark: #3D2B1F;
+    --text: #4A3728;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    color: var(--text);
+    background: linear-gradient(135deg, #FFF0F3 0%, #FFF8E1 50%, #F5F0FF 100%);
+}
+
+/* ── Typography ─────────────────────────────────────── */
+.wedding-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--rose);
+    margin: 0;
+}
+
+.wedding-date {
+    font-family: 'Nunito', sans-serif;
+    color: var(--gold);
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    font-weight: 700;
+}
+
+.heart-divider {
+    color: var(--gold);
+    font-size: 1.4rem;
+    margin: 0.15rem 0;
+    display: block;
+}
+
+/* ── Cards ──────────────────────────────────────────── */
+.wedding-card {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(196, 104, 122, 0.15);
+    background: #fff;
+    overflow: hidden;
+}
+
+.wedding-card::before {
+    content: '';
+    display: block;
+    height: 4px;
+    background: linear-gradient(90deg, var(--pink), var(--gold), var(--pink));
+}
+
+/* ── Buttons ────────────────────────────────────────── */
+.btn-wedding {
+    background: linear-gradient(135deg, var(--rose), #E8689A);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    padding: 0.75rem 2rem;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(196, 104, 122, 0.4);
+}
+
+.btn-wedding:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(196, 104, 122, 0.55);
+    color: #fff;
+}
+
+.btn-outline-wedding {
+    border: 2px solid var(--rose);
+    color: var(--rose);
+    border-radius: 50px;
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    background: transparent;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-outline-wedding:hover {
+    background: var(--rose);
+    color: #fff;
+}
+
+/* ── Input ──────────────────────────────────────────── */
+.wedding-input {
+    border: 2px solid #F8C8D3;
+    border-radius: 50px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    transition: all 0.3s;
+    font-family: 'Nunito', sans-serif;
+}
+
+.wedding-input:focus {
+    border-color: var(--rose);
+    box-shadow: 0 0 0 0.2rem rgba(196, 104, 122, 0.2);
+    outline: none;
+}
+
+.wedding-input.is-invalid {
+    border-color: #F44336;
+    animation: shake 0.4s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+/* ── Stat boxes (index page) ────────────────────────── */
+.stat-box {
+    background: var(--light-pink);
+    border-radius: 12px;
+    padding: 0.75rem 0.5rem;
+}
+
+.stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--rose);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.72rem;
+    color: #aaa;
+    margin-top: 2px;
+}
+
+/* ── Floating petals ────────────────────────────────── */
+.petals-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.petal {
+    position: absolute;
+    top: -30px;
+    animation: petal-fall linear infinite;
+    opacity: 0.75;
+    user-select: none;
+}
+
+@keyframes petal-fall {
+    to { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+}
+
+/* ── Rings icon ─────────────────────────────────────── */
+.rings-icon {
+    font-size: 3rem;
+    display: block;
+    animation: ring-swing 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes ring-swing {
+    from { transform: rotate(-6deg); }
+    to   { transform: rotate(6deg); }
+}
+
+/* ── Quiz header ────────────────────────────────────── */
+.quiz-header {
+    background: linear-gradient(135deg, var(--rose), #E8689A);
+    color: #fff;
+    padding: 1rem 1.25rem 0.75rem;
+    border-radius: 20px 20px 0 0;
+}
+
+.quiz-header .progress {
+    height: 5px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.quiz-header .progress-bar {
+    background: #fff;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+/* ── Timer bar ──────────────────────────────────────── */
+.timer-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.timer-number {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--rose);
+    min-width: 2.4rem;
+    text-align: center;
+    line-height: 1;
+    transition: color 0.3s;
+}
+
+.timer-number.warning { color: #FF9800; }
+.timer-number.danger  { color: #F44336; }
+
+.timer-bar-track {
+    flex: 1;
+    height: 8px;
+    background: #f3e8ea;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.timer-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    transition: width 1s linear, background-color 0.5s;
+}
+
+.timer-bar-fill.warning {
+    background: linear-gradient(90deg, #FF9800, #FFC107);
+}
+
+.timer-bar-fill.danger {
+    background: linear-gradient(90deg, #F44336, #FF5722);
+}
+
+/* ── Question ───────────────────────────────────────── */
+.question-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    line-height: 1.55;
+    color: var(--dark);
+    margin-bottom: 1.25rem;
+    min-height: 3.5rem;
+}
+
+/* ── Option buttons ─────────────────────────────────── */
+.option-btn {
+    background: #fff;
+    border: 2px solid #F0DDE2;
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    text-align: left;
+    font-size: 0.92rem;
+    color: var(--text);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    margin-bottom: 0.6rem;
+    font-family: 'Nunito', sans-serif;
+    cursor: pointer;
+}
+
+.option-btn:last-child { margin-bottom: 0; }
+
+.option-btn:hover:not(:disabled) {
+    border-color: var(--rose);
+    background: var(--light-pink);
+    transform: translateX(4px);
+}
+
+.option-btn.correct {
+    background: #E8F5E9;
+    border-color: #4CAF50;
+    color: #2E7D32;
+}
+
+.option-btn.wrong {
+    background: #FFEBEE;
+    border-color: #F44336;
+    color: #C62828;
+}
+
+.option-btn:disabled { cursor: default; }
+
+.option-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    background: var(--light-pink);
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--rose);
+    transition: all 0.2s;
+}
+
+.option-btn.correct .option-letter { background: #C8E6C9; color: #2E7D32; }
+.option-btn.wrong   .option-letter { background: #FFCDD2; color: #C62828; }
+
+/* ── Score badge ────────────────────────────────────── */
+.score-badge {
+    background: rgba(255,255,255,0.25);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: #fff;
+    border-radius: 50px;
+    padding: 0.25rem 0.9rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+/* ── Feedback toast ─────────────────────────────────── */
+.feedback-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: #fff;
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    max-width: 360px;
+    width: calc(100% - 2rem);
+    z-index: 1000;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: center;
+}
+
+.feedback-toast.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+.feedback-toast.correct-fb { border-top: 4px solid #4CAF50; }
+.feedback-toast.wrong-fb   { border-top: 4px solid #F44336; }
+.feedback-toast.timeout-fb { border-top: 4px solid #FF9800; }
+
+.feedback-icon { font-size: 2rem; line-height: 1; margin-bottom: 0.25rem; }
+.feedback-title { font-weight: 800; font-size: 1rem; margin-bottom: 0.2rem; }
+.feedback-text  { font-size: 0.85rem; color: #777; }
+
+/* ── Result screen ──────────────────────────────────── */
+.result-grade {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--rose);
+}
+
+.result-score-big {
+    font-family: 'Playfair Display', serif;
+    font-size: 4.5rem;
+    font-weight: 700;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--rose), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.result-stat {
+    background: var(--light-pink);
+    border-radius: 12px;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.result-stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    color: var(--rose);
+    font-weight: 700;
+    line-height: 1;
+}
+
+.result-stat-lbl {
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-top: 2px;
+}
+
+/* ── Leaderboard ────────────────────────────────────── */
+.lb-header {
+    background: linear-gradient(135deg, var(--rose), #E8689A);
+    color: #fff;
+    padding: 1.5rem 1.25rem 1.25rem;
+    border-radius: 20px 20px 0 0;
+    text-align: center;
+}
+
+.lb-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.lb-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+    animation: slide-in 0.3s ease both;
+}
+
+@keyframes slide-in {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.lb-item:hover { transform: translateX(3px); }
+
+.lb-item.rank-1 { background: linear-gradient(135deg, #FFF8DC, #FFE566); }
+.lb-item.rank-2 { background: linear-gradient(135deg, #F5F5F5, #E0E0E0); }
+.lb-item.rank-3 { background: linear-gradient(135deg, #FFF3E0, #FFCC80); }
+
+.lb-item.current-player { outline: 2px solid var(--rose); }
+
+.rank-badge {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.88rem;
+    background: var(--light-pink);
+    color: var(--rose);
+}
+
+.lb-item.rank-1 .rank-badge { background: none; font-size: 1.5rem; }
+.lb-item.rank-2 .rank-badge { background: none; font-size: 1.5rem; }
+.lb-item.rank-3 .rank-badge { background: none; font-size: 1.5rem; }
+
+.lb-name {
+    font-weight: 700;
+    color: var(--dark);
+    flex-grow: 1;
+    font-size: 0.95rem;
+}
+
+.lb-score {
+    font-weight: 800;
+    color: var(--rose);
+    font-size: 1.1rem;
+}
+
+.lb-time {
+    font-size: 0.75rem;
+    color: #aaa;
+    min-width: 3rem;
+    text-align: right;
+}
+
+.lb-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #bbb;
+    font-size: 0.95rem;
+}
+
+/* ── Result screen — rank badge ────────────────────── */
+.my-rank-box {
+    background: linear-gradient(135deg, var(--light-pink), var(--light-gold));
+    border: 2px solid var(--rose);
+    border-radius: 50px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--dark);
+    display: inline-block;
+}
+
+.my-rank-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: var(--rose);
+}
+
+/* ── Result screen — inline leaderboard ─────────────── */
+.result-lb-title {
+    font-weight: 800;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gold);
+    margin-bottom: 0.6rem;
+}
+
+.result-lb-list {
+    max-height: 320px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.result-lb-list::-webkit-scrollbar { width: 4px; }
+.result-lb-list::-webkit-scrollbar-track { background: #f5f5f5; border-radius: 2px; }
+.result-lb-list::-webkit-scrollbar-thumb { background: var(--pink); border-radius: 2px; }
+
+.lb-separator {
+    text-align: center;
+    color: #ccc;
+    font-size: 1.2rem;
+    letter-spacing: 0.2em;
+    padding: 0.2rem 0;
+}
+
+/* ── Fade in/out animation for quiz ────────────────── */
+.fade-out { animation: fadeOut 0.25s ease forwards; }
+.fade-in  { animation: fadeIn  0.25s ease forwards; }
+
+@keyframes fadeOut { to { opacity: 0; transform: translateY(-8px); } }
+@keyframes fadeIn  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 576px) {
+    .wedding-title  { font-size: 1.6rem; }
+    .question-text  { font-size: 1.05rem; }
+    .result-score-big { font-size: 3.5rem; }
+}
