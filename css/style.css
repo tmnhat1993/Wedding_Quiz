@@ -343,6 +343,7 @@ body {
 .feedback-toast.correct-fb { border-top: 4px solid #4CAF50; }
 .feedback-toast.wrong-fb   { border-top: 4px solid #F44336; }
 .feedback-toast.timeout-fb { border-top: 4px solid #FF9800; }
+.feedback-toast.neutral-fb { border-top: 4px solid var(--pink); }
 
 .feedback-icon { font-size: 2rem; line-height: 1; margin-bottom: 0.25rem; }
 .feedback-title { font-weight: 800; font-size: 1rem; margin-bottom: 0.2rem; }
@@ -400,6 +401,12 @@ body {
     font-family: 'Playfair Display', serif;
     font-size: 1.5rem;
     margin: 0;
+}
+
+.lb-total-players {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--rose);
 }
 
 .lb-item {

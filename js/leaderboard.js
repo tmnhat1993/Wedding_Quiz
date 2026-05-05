@@ -3,26 +3,24 @@
 // ════════════════════════════════════════════════════════
 
 const currentPlayerName = sessionStorage.getItem('playerName') || '';
-let   unsubscribe       = null;
+const POLL_INTERVAL_MS  = 15000;
+let   pollTimer         = null;
 
 function initLeaderboard() {
-    listenToScores();
+    fetchScores();
+    pollTimer = setInterval(fetchScores, POLL_INTERVAL_MS);
 }
 
-// ── Real-time listener ─────────────────────────────────
-function listenToScores() {
-    document.getElementById('loadingEl').style.display = 'block';
-
-    unsubscribe = db.collection('scores')
+function fetchScores() {
+    db.collection('scores')
         .orderBy('timestamp', 'desc')
-        .onSnapshot(snapshot => {
-            document.getElementById('loadingEl').style.display = 'none';
-
+        .get()
+        .then(snapshot => {
             const all = snapshot.docs.map(d => d.data());
             const best = getBestPerPlayer(all);
             renderLeaderboard(best);
-        }, err => {
-            document.getElementById('loadingEl').style.display = 'none';
+        })
+        .catch(err => {
             console.error('Leaderboard error:', err);
             document.getElementById('listEl').innerHTML =
                 '<div class="lb-empty">⚠️ Không thể tải bảng xếp hạng.<br>Kiểm tra cấu hình Firebase.</div>';

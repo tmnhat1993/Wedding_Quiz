@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Điểm quiz — khách tạo bản ghi; admin xóa khi reset / xóa từng dòng
+    match /scores/{scoreId} {
+      allow read: if true;
+      allow create: if true;
+      allow delete: if true;
+      allow update: if false;
+    }
+
+    // Phiên chơi — đọc để khóa chơi lại; ghi khi admin reset (bump epoch)
+    match /meta/{docId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if false;
+    }
+  }
+}

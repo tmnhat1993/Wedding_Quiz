@@ -33,14 +33,15 @@
                             <span id="questionCounter" style="font-size:0.85rem;opacity:0.75;">
                                 Câu 1 / 10
                             </span>
-                            <span class="score-badge">
-                                ⭐ <span id="scoreDisplay">0</span>
+                            <span class="score-badge" style="font-weight:600;font-size:0.82rem;">
+                                💒 Quiz
                             </span>
                         </div>
                         <!-- Progress bar -->
                         <div class="progress">
                             <div id="progressBar" class="progress-bar" style="width:0%"></div>
                         </div>
+                        <p class="text-center mb-0 mt-2" style="font-size:0.72rem;opacity:0.8;">10 · 05 · 2026</p>
                     </div>
 
                     <!-- Body -->
@@ -69,55 +70,15 @@
                 <div class="wedding-card">
                     <div class="card-body p-4 text-center">
 
-                        <div id="resultGradeEmoji" style="font-size:3.5rem;line-height:1;margin-bottom:0.5rem;">🏆</div>
-                        <div id="resultGrade" class="result-grade mb-1">Thiên tài tình yêu!</div>
-                        <p class="text-muted mb-2" style="font-size:0.85rem;">
-                            Xin chúc mừng, <strong id="resultName"></strong>!
+                        <div style="font-size:3.25rem;line-height:1;margin-bottom:0.75rem;">💒</div>
+                        <h2 class="result-grade mb-3" style="font-size:1.65rem;">Cảm ơn bạn đã tham gia!</h2>
+                        <p class="mb-2" style="font-size:1rem;color:var(--dark);">
+                            Xin chào <strong id="resultName"></strong>,
                         </p>
-
-                        <div class="result-score-big mb-1" id="resultScore">0</div>
-                        <div class="text-muted mb-3" style="font-size:0.85rem;">điểm / 20,000</div>
-
-                        <!-- Stats -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <div class="result-stat">
-                                    <div class="result-stat-num">
-                                        <span id="resultCorrect">0</span>/10
-                                    </div>
-                                    <div class="result-stat-lbl">Câu đúng</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="result-stat">
-                                    <div class="result-stat-num" id="resultTime">0s</div>
-                                    <div class="result-stat-lbl">Tổng thời gian</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- My rank badge -->
-                        <div id="myRankBox" class="my-rank-box mb-3" style="display:none;">
-                            🎯 Bạn đang xếp hạng&nbsp;<span id="myRankNum" class="my-rank-num">#?</span>
-                        </div>
-
-                        <!-- Inline leaderboard -->
-                        <div class="result-lb-title">🏆 Bảng Xếp Hạng</div>
-                        <div id="resultLbList" class="result-lb-list mb-4">
-                            <div class="text-center py-3 text-muted" style="font-size:0.85rem;">
-                                <div class="spinner-border spinner-border-sm me-1"></div> Đang tải…
-                            </div>
-                        </div>
-
-                        <!-- Buttons -->
-                        <div class="d-flex gap-2">
-                            <a href="index.html" class="btn btn-outline-wedding flex-fill text-center">
-                                🏠 Trang chủ
-                            </a>
-                            <button class="btn btn-wedding flex-fill" onclick="playAgain()">
-                                🔄 Chơi lại
-                            </button>
-                        </div>
+                        <p class="text-muted mb-4" style="font-size:0.95rem;line-height:1.55;">
+                            Cảm ơn bạn đã tham gia cùng chương trình. Xin mời bạn cùng chờ đợi kết quả từ chương trình nhé!
+                        </p>
+                        <p class="text-muted mb-0" style="font-size:0.85rem;letter-spacing:0.12em;">10 · 05 · 2026</p>
 
                     </div>
                 </div>
@@ -135,6 +96,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
 <script src="js/firebase-config.js"></script>
+<script src="js/quiz-session.js"></script>
 <script src="js/questions.js"></script>
 <script src="js/quiz.js"></script>
 

@@ -29,17 +29,17 @@
                 <h1 class="wedding-title">Mỹ Dung</h1>
                 <span class="heart-divider">♥</span>
                 <h1 class="wedding-title">Minh Kiệt</h1>
-                <p class="wedding-date mt-2">05 · 06 · 2026</p>
+                <p class="wedding-date mt-2">10 · 05 · 2026</p>
             </div>
 
             <!-- Welcome card -->
             <div class="wedding-card mb-4">
                 <div class="card-body p-4">
                     <h4 class="text-center mb-1" style="color:var(--gold);font-family:'Playfair Display',serif;">
-                        🎊 Quiz Vui Đám Cưới
+                        🎊 Hỏi đáp vui
                     </h4>
                     <p class="text-center text-muted mb-4" style="font-size:0.9rem;">
-                        Bạn hiểu cặp đôi này đến đâu? Trả lời 10 câu hỏi và so tài cùng bạn bè nhé!
+                        Bạn hiểu cô dâu chú rể đến đâu?  Tham gia ngay để nhận những phần quà đáng yêu từ cặp đôi nhé — kết quả sẽ được công bố trong chương trình!
                     </p>
 
                     <!-- Stats -->
@@ -58,15 +58,15 @@
                         </div>
                         <div class="col-4">
                             <div class="stat-box">
-                                <div class="stat-number">20K</div>
-                                <div class="stat-label">Điểm tối đa</div>
+                                <div class="stat-number">✨</div>
+                                <div class="stat-label">Chờ kết quả</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Name input -->
                     <label for="playerName" class="form-label fw-semibold" style="font-size:0.9rem;">
-                        Nhập tên của bạn
+                        Tên của bạn là:
                     </label>
                     <input
                         type="text"
@@ -77,17 +77,15 @@
                         autocomplete="off"
                     >
 
-                    <button class="btn btn-wedding w-100" onclick="startQuiz()">
-                        <i class="bi bi-play-fill me-2"></i>Bắt đầu Quiz!
+                    <p id="sessionCheckMsg" class="text-center text-muted mb-2" style="font-size:0.82rem;">
+                        Đang kiểm tra phiên chơi…
+                    </p>
+                    <p id="alreadyPlayedMsg" class="alert alert-warning py-2 px-3 mb-3 text-center" style="display:none;font-size:0.88rem;"></p>
+
+                    <button type="button" id="startQuizBtn" class="btn btn-wedding w-100" disabled onclick="startQuiz()">
+                        <i class="bi bi-play-fill me-2"></i>Bắt đầu!
                     </button>
                 </div>
-            </div>
-
-            <!-- Leaderboard link -->
-            <div class="text-center">
-                <a href="leaderboard.html" class="btn-outline-wedding">
-                    <i class="bi bi-trophy me-1"></i>Xem Bảng Xếp Hạng
-                </a>
             </div>
 
         </div>
@@ -97,9 +95,20 @@
 <!-- Floating petals -->
 <div class="petals-container" id="petalsContainer"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/quiz-session.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     function startQuiz() {
+        const epochStr = sessionStorage.getItem('quizRoundEpoch');
+        const epoch = epochStr !== null && epochStr !== '' ? Number(epochStr) : NaN;
+        if (!Number.isNaN(epoch) && weddingQuizHasPlayedCurrentRound(epoch)) {
+            return;
+        }
+
         const inp  = document.getElementById('playerName');
         const name = inp.value.trim();
         if (!name) {
@@ -116,6 +125,32 @@
     document.getElementById('playerName').addEventListener('keydown', e => {
         if (e.key === 'Enter') startQuiz();
         document.getElementById('playerName').classList.remove('is-invalid');
+    });
+
+    window.addEventListener('load', () => {
+        const sessionMsg = document.getElementById('sessionCheckMsg');
+        const startBtn   = document.getElementById('startQuizBtn');
+        const playedMsg  = document.getElementById('alreadyPlayedMsg');
+        const nameInput  = document.getElementById('playerName');
+
+        fetchQuizRoundEpoch()
+            .then(epoch => {
+                sessionStorage.setItem('quizRoundEpoch', String(epoch));
+                sessionMsg.style.display = 'none';
+                startBtn.disabled = false;
+
+                if (weddingQuizHasPlayedCurrentRound(epoch)) {
+                    startBtn.disabled = true;
+                    nameInput.disabled = true;
+                    playedMsg.style.display = 'block';
+                    playedMsg.textContent =
+                        'Bạn đã tham gia phiên này rồi. Khi Ban tổ chức mở phiên mới (reset game), bạn có thể tham gia lại nhé!';
+                }
+            })
+            .catch(() => {
+                sessionMsg.textContent = 'Không kiểm tra được phiên chơi. Thử tải lại trang hoặc kiểm tra kết nối.';
+                startBtn.disabled = false;
+            });
     });
 
     // Floating petals

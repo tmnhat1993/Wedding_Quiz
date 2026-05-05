@@ -2,10 +2,9 @@
 
 ## Tổng quan dự án
 
-Website quiz đám cưới dạng single-page, thuần HTML/CSS/JS tĩnh (không có build tool).
-Người dùng quét QR → nhập tên → trả lời 10 câu hỏi có đếm giờ → xem điểm → leaderboard real-time.
+Website quiz đám cưới thuần HTML/CSS/JS tĩnh (không có build tool). Khách quét QR → nhập tên → trả lời 10 câu có đếm giờ → màn hình cảm ơn (không hiển thị điểm / đúng sai / xếp hạng); dữ liệu vẫn lưu Firestore cho MC. Trang **leaderboard** và **admin** dùng URL trực tiếp (không có link trên `index.html`).
 
-**Không dùng framework JS nào** (React, Vue…). Chỉ dùng Bootstrap 5 + Vanilla JS + Firebase SDK qua CDN.
+**Không dùng framework JS** — Bootstrap 5 + Vanilla JS + Firebase compat SDK qua CDN.
 
 ---
 
@@ -13,11 +12,12 @@ Người dùng quét QR → nhập tên → trả lời 10 câu hỏi có đếm
 
 | Layer     | Công nghệ                                      |
 |-----------|------------------------------------------------|
-| UI        | Bootstrap 5.3 (CDN) + Bootstrap Icons 1.11     |
-| Font      | Google Fonts: Playfair Display + Nunito        |
-| Database  | Firebase Firestore (compat SDK v10, CDN)       |
-| Hosting   | Bất kỳ static host (Firebase Hosting, GitHub Pages, Netlify…) |
-| Build     | **Không có** — mở trực tiếp file HTML          |
+| UI        | Bootstrap 5.3 (CDN) + Bootstrap Icons 1.11   |
+| Font      | Google Fonts: Playfair Display + Nunito      |
+| Database  | Firebase Firestore (compat SDK v10, CDN)      |
+| Hosting   | Static host (Firebase Hosting, GitHub Pages…) |
+| Build     | **Không có** — mở trực tiếp file HTML        |
+| Rules     | `firestore.rules` + `firebase.json` (deploy CLI) |
 
 ---
 
@@ -25,231 +25,151 @@ Người dùng quét QR → nhập tên → trả lời 10 câu hỏi có đếm
 
 ```
 DamCuoiQuiz/
-├── index.html           # Trang chào / nhập tên người chơi
-├── quiz.html            # Trang chơi quiz (10 câu + timer)
-├── leaderboard.html     # Bảng xếp hạng real-time
+├── index.html              # Chào / nhập tên (Firebase + quiz-session)
+├── quiz.html               # 10 câu + timer + màn cảm ơn
+├── leaderboard.html        # Bảng xếp hạng (poll định kỳ)
+├── admin.html              # Quản trị: danh sách, xóa từng người, reset game
+├── firebase.json           # Trỏ tới firestore.rules
+├── firestore.rules         # Rules Firestore (deploy lên Console hoặc CLI)
 ├── css/
-│   └── style.css        # Toàn bộ CSS — theme màu hồng / vàng gold
+│   └── style.css
 └── js/
-    ├── firebase-config.js   # Firebase init + db export (global)
-    ├── questions.js         # Mảng QUIZ_QUESTIONS — 10 câu hỏi
-    ├── quiz.js              # Logic quiz, timer, tính điểm, lưu Firebase
-    └── leaderboard.js       # Real-time Firestore listener + render
+    ├── firebase-config.js  # init Firebase + global db
+    ├── quiz-session.js     # epoch phiên chơi + localStorage (chặn chơi lại)
+    ├── questions.js        # QUIZ_QUESTIONS
+    ├── quiz.js             # Logic quiz + saveScore
+    ├── leaderboard.js      # get + poll, dedup theo tên
+    └── admin.js            # Danh sách scores, reset + bump epoch
 ```
 
-### Thứ tự load script trong HTML
+### Thứ tự load script (chuẩn)
 
-Các file HTML load script theo thứ tự sau (thứ tự này quan trọng):
-```html
-firebase-app-compat.js  →  firebase-firestore-compat.js
-→  firebase-config.js  →  questions.js  →  quiz.js / leaderboard.js
-→  bootstrap.bundle.min.js
 ```
-`firebase-config.js` tạo global `db = firebase.firestore()`.
-`questions.js` tạo global `QUIZ_QUESTIONS`.
-`quiz.js` / `leaderboard.js` phụ thuộc vào cả hai global trên.
+firebase-app-compat.js → firebase-firestore-compat.js
+→ firebase-config.js → quiz-session.js (index & quiz) → questions.js → quiz.js
+→ leaderboard: firebase-config.js → leaderboard.js
+→ admin: firebase-config.js → admin.js
+→ bootstrap.bundle.min.js
+```
 
 ---
 
 ## CSS — Design System
 
-File duy nhất: `css/style.css`. Tất cả style dùng CSS custom properties:
+File: `css/style.css`. Custom properties: `--pink`, `--light-pink`, `--rose`, `--gold`, `--dark`, `--text`.
 
-```css
---pink:       #E8A0B4
---light-pink: #FFF0F3
---rose:       #C4687A   /* màu chủ đạo */
---gold:       #C9A84C   /* màu phụ / accent */
---dark:       #3D2B1F
---text:       #4A3728
-```
-
-**Quy tắc đặt tên class:**
-- Component page-specific có prefix: `.quiz-*`, `.lb-*` (leaderboard)
-- Shared components: `.wedding-card`, `.btn-wedding`, `.wedding-input`, `.option-btn`
-- State modifiers: `.correct`, `.wrong`, `.warning`, `.danger`, `.show`, `.current-player`
-- Animation helpers: `.fade-in`, `.fade-out`
-
-**Không dùng inline style** trừ width/animation-delay động được set bằng JS.
+**Prefix:** `.quiz-*`, `.lb-*`, `.lb-total-players` (số người chơi leaderboard).
 
 ---
 
 ## Firebase
 
 ### Cấu hình
-Mở `js/firebase-config.js` và thay toàn bộ placeholder bằng config thực từ Firebase Console:
-```js
-const firebaseConfig = {
-    apiKey:            "...",
-    authDomain:        "...",
-    projectId:         "...",
-    storageBucket:     "...",
-    messagingSenderId: "...",
-    appId:             "..."
-};
-```
+
+`js/firebase-config.js` — thay `firebaseConfig` bằng project thật. Comment trong file nhắc phải **publish** rules đúng với `firestore.rules`.
 
 ### Firestore Security Rules
-Paste vào Firebase Console → Firestore → Rules:
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /scores/{scoreId} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if false;
-    }
-  }
-}
-```
 
-### Schema Firestore
+**Không dùng** bản cũ chỉ `create` trên `scores` và cấm `delete`. Cần:
 
-**Collection:** `scores`
+- `scores`: `read`, `create`, `delete` (admin xóa / reset); `update` tùy chính sách.
+- `meta/{docId}`: `read` cho khách; `create`, `update` để bump `epoch` khi reset.
+
+Nội dung chuẩn nằm trong **`firestore.rules`** ở root repo — dán vào Console → Firestore → Rules hoặc:
+
+`firebase deploy --only firestore:rules`
+
+### Collections / schema
+
+**`scores`** — mỗi lượt chơi một document:
 
 ```js
 {
-  name:           string,      // tên người chơi
-  score:          number,      // tổng điểm (0–150)
-  totalTime:      number,      // tổng giây đã dùng
-  correctAnswers: number,      // số câu đúng (0–10)
-  timestamp:      Timestamp,   // firebase.firestore.FieldValue.serverTimestamp()
-  answers: [
-    {
-      questionId: number,
-      selected:   number,   // index đáp án chọn, -1 nếu hết giờ
-      correct:    number,   // index đáp án đúng
-      isCorrect:  boolean,
-      timeTaken:  number,   // giây
-      points:     number    // điểm kiếm được cho câu này
-    }
-  ]
+  name: string,
+  score: number,           // tối đa 20_000 (10 câu × 2000)
+  totalTime: number,       // giây
+  correctAnswers: number,  // 0–10
+  timestamp: Timestamp,
+  answers: [ { questionId, selected, correct, isCorrect, timeTaken, points } ]
 }
 ```
+
+**`meta/session`** — một document (vd. id `session`):
+
+```js
+{ epoch: number }  // tăng khi admin bấm Reset game (FieldValue.increment)
+```
+
+Dùng chung với `localStorage` key `weddingQuiz_lastPlayedEpoch` (trong `quiz-session.js`) để **cùng một phiên** không cho chơi lại trên cùng trình duyệt; sau khi admin reset (epoch mới), có thể chơi lại.
 
 ---
 
 ## Logic Quiz (`js/quiz.js`)
 
-### State object
-```js
-let state = {
-    playerName, currentIndex, score, totalTime,
-    correctCount, answers, timerInterval,
-    timeRemaining, questionStartMs, answered
-}
-```
+### State
 
-### Tính điểm
-```
-đúng = 1000 điểm base (luôn được nếu đúng)
-     + Math.round((timeRemaining / 30) * 1000) điểm speed bonus
-     → tối đa 2000 điểm/câu, tối đa 20,000 điểm tổng
-     → trả lời ngay: 2000 | trả lời lúc còn 15s: 1500 | lúc còn 1s: ~1033
-sai / hết giờ = 0 điểm
-```
+`playerName`, `roundEpoch`, `currentIndex`, `score`, `totalTime`, `correctCount`, `answers`, timer fields.
 
-### Flow
-```
-initQuiz()
-  └─ showQuestion(index)
-       ├─ render options → option-btn elements
-       ├─ startTimer() → setInterval 250ms
-       │    └─ handleTimeout() nếu hết giờ
-       └─ selectAnswer(i) khi click
-            ├─ tính điểm
-            ├─ highlight correct/wrong
-            ├─ showFeedback() toast
-            └─ setTimeout 2200ms → showQuestion(index+1)
-                                   hoặc endQuiz() nếu xong
-endQuiz()
-  └─ hiện #resultScreen
-  ├─ saveScore() → db.collection('scores').add(data)
-  └─ listenResultLeaderboard() → real-time listener, cập nhật #resultLbList + #myRankBox
-```
+### Tính điểm (lưu server, không show khách)
 
-### Naming / conventions trong quiz.js
-- Dùng `state.*` cho tất cả mutable state, không dùng biến global rời rạc.
-- `state.lbUnsubscribe` lưu hàm unsubscribe Firestore listener; gọi trước khi navigate.
-- Timer dùng `Date.now()` để tính `timeTaken` chính xác, không đếm bằng tick.
-- Transition: fade-in class trên `#questionText`, reset bằng `void el.offsetWidth`.
-- `makeLbRow()` và `escapeHtml()` định nghĩa trong quiz.js (không import từ leaderboard.js).
+Đúng: 1000 + speed bonus tối đa 1000 mỗi câu → tối đa **20.000** tổng.
 
-### Result screen (sau khi quiz kết thúc)
-Hiển thị ngay trên trang quiz.html (không redirect):
-1. Grade emoji + tên danh hiệu
-2. Điểm lớn (toLocaleString)
-3. Stats: câu đúng / thời gian
-4. **`#myRankBox`** — badge "Bạn đang xếp hạng #N" (ẩn cho đến khi có data)
-5. **`#resultLbList`** — top 10 + separator `···` + hàng của người chơi nếu ngoài top 10
-6. Nút: 🏠 Trang chủ (`href="index.html"`) + 🔄 Chơi lại (`playAgain()`)
+### Trải nghiệm khách
 
-CSS liên quan: `.my-rank-box`, `.my-rank-num`, `.result-lb-title`, `.result-lb-list`, `.lb-separator`
+- Không tô xanh/đỏ đáp án; toast trung tính (không tiết lộ đúng/sai).
+- Header quiz: nhãn **Quiz**, không hiển thị điểm chạy.
+- **Kết thúc:** chỉ lời cảm ơn + chờ kết quả chương trình; **không** nút về trang chủ trên màn đó.
+- `saveScore()` + `weddingQuizRememberPlayed(state.roundEpoch)` sau khi hiện kết quả.
+
+### Index + session
+
+`index.html` gọi `fetchQuizRoundEpoch()`, set `sessionStorage.quizRoundEpoch`, khóa form nếu đã chơi phiên hiện tại. `quiz.js` redirect về index nếu đã chơi hoặc không có tên.
 
 ---
 
-## Logic Leaderboard (`js/leaderboard.js`)
+## Leaderboard (`js/leaderboard.js`)
 
-- `db.collection('scores').orderBy('timestamp','desc').onSnapshot(...)` — real-time
-- Client-side dedup: `getBestPerPlayer()` giữ điểm cao nhất per tên (lowercase)
-- Sort: score DESC → totalTime ASC
-- Hiển thị top 20
-- Highlight người chơi hiện tại (so sánh `sessionStorage.getItem('playerName')`)
-- `escapeHtml()` để tránh XSS khi render tên người chơi
+- `get()` (không `onSnapshot`), **poll mỗi 15s**, không giới hạn số lần.
+- **Không** spinner / chữ “Đang tải” / “Cập nhật tự động” / “Lần tải”.
+- `getBestPerPlayer()` → sort điểm giảm, thời gian tăng; top **20**.
+- `#totalPlayers`: căn giữa, **font-size 18px** (class `.lb-total-players`).
+
+---
+
+## Admin (`admin.html` + `js/admin.js`)
+
+- Liệt kê `scores`, xóa từng dòng, **Reset game**: xóa hết `scores` + **increment** `meta/session.epoch` trong cùng batch.
+- Cần rules cho phép `delete` trên `scores` và ghi `meta`.
 
 ---
 
 ## Câu hỏi (`js/questions.js`)
 
-Mảng `QUIZ_QUESTIONS`, mỗi phần tử:
-```js
-{
-  id:          number,    // 1–10
-  question:    string,
-  options:     string[4], // luôn đúng 4 đáp án
-  correct:     number,    // index 0–3
-  explanation: string     // hiện trong feedback toast sau khi trả lời
-}
-```
-
-**Để tùy chỉnh:** chỉ cần sửa nội dung trong `js/questions.js`. Không cần động đến file nào khác.
+Chỉnh nội dung tại đây; `explanation` không còn hiện cho khách trên toast nhưng vẫn có thể giữ trong data.
 
 ---
 
-## Những chỗ cần tùy chỉnh trước khi deploy
+## Tùy chỉnh trước khi deploy
 
-1. **Tên cặp đôi** — xuất hiện ở 3 nơi:
-   - `index.html` dòng `<h1 class="wedding-title">Nguyễn Văn A</h1>` (2 dòng)
-   - `leaderboard.html` dòng `💍 Nguyễn Văn A &amp; Trần Thị B · 05.06.2026`
-
-2. **Ngày cưới** — `index.html` thẻ `<p class="wedding-date">`
-
-3. **10 câu hỏi** — `js/questions.js` (câu hỏi, đáp án, `correct` index, `explanation`)
-
-4. **Firebase config** — `js/firebase-config.js`
+1. Tên cặp đôi / ngày cưới — `index.html`, `quiz.html`, `leaderboard.html`, `admin.html` (hiện tại ngày **10.05.2026**).
+2. `js/questions.js`
+3. `js/firebase-config.js`
+4. Publish **`firestore.rules`**
 
 ---
 
-## Những việc chưa làm / có thể thêm
+## Việc có thể làm thêm
 
-- [x] Result screen nhúng leaderboard real-time + hiển thị rank cá nhân
-- [x] Nút Trang chủ trên result screen
-- [ ] **QR Code tích hợp**: thêm trang `admin.html` tự sinh QR từ URL deploy
-- [ ] **Ảnh câu hỏi**: thêm field `image` vào question schema và `<img>` trong quiz.html
-- [ ] **Âm thanh**: SFX đúng/sai/tick timer (Web Audio API hoặc `<audio>`)
-- [ ] **Admin panel**: xem tất cả lượt chơi, reset leaderboard
-- [ ] **Đếm ngược bắt đầu** (3-2-1) trước khi quiz bắt đầu
-- [ ] **Share kết quả**: nút share điểm lên mạng xã hội (Web Share API)
-- [ ] **Ngăn chơi lại nhiều lần**: lưu flag trong localStorage
-- [ ] **Firebase Hosting**: thêm `firebase.json` để deploy
+- [ ] QR / short link trên admin
+- [ ] ảnh câu hỏi, âm thanh, countdown 3-2-1
+- [ ] Firebase Auth cho admin thay vì rules mở
+- [ ] Firebase Hosting + CI deploy
 
 ---
 
 ## Lưu ý kỹ thuật
 
-- **Không có module bundler**: tất cả JS chạy trong global scope. Hàm trong `quiz.js` được gọi từ `onclick` attribute trong HTML.
-- **sessionStorage**: dùng để truyền `playerName` giữa các trang (key: `'playerName'`). Key `'lastScoreId'` lưu Firestore doc ID sau khi submit.
-- **Firebase SDK**: dùng **compat** (không phải modular), nên syntax là `firebase.firestore()` chứ không phải `import { getFirestore }`.
-- **Responsive**: đã test layout trên mobile (col-12) và desktop (col-lg-5). Breakpoint chính: 576px.
-- **Không có server**: website hoàn toàn tĩnh, không cần backend.
+- Global scope, không bundler.
+- `sessionStorage`: `playerName`, `quizRoundEpoch`; `localStorage`: `weddingQuiz_lastPlayedEpoch`.
+- Firebase **compat** API: `firebase.firestore()`.
+- Static site, không backend riêng.
