@@ -23,13 +23,12 @@ let state = {
 
 // ── Init ───────────────────────────────────────────────
 function initQuiz() {
-    const searchParams = new URLSearchParams(window.location.search);
-    const forcePlayedView = searchParams.get('played') === '1';
     const savedName = sessionStorage.getItem('playerName');
     state.playerName = savedName || 'bạn';
 
-    function beginOrRedirect() {
-        if (weddingQuizHasPlayedCurrentRound(state.roundEpoch) || forcePlayedView) {
+    function beginOrRedirect(gameStatus) {
+        const isEnded = gameStatus === QUIZ_STATUS_ENDED;
+        if (isEnded || weddingQuizHasPlayedCurrentRound(state.roundEpoch)) {
             showFinalScreenOnly();
             return;
         }
@@ -42,17 +41,19 @@ function initQuiz() {
     }
 
     const rawEpoch = sessionStorage.getItem('quizRoundEpoch');
-    if (rawEpoch !== null && rawEpoch !== '') {
+    const rawStatus = sessionStorage.getItem('quizGameStatus');
+    if (rawEpoch !== null && rawEpoch !== '' && rawStatus) {
         state.roundEpoch = Number(rawEpoch);
-        beginOrRedirect();
+        beginOrRedirect(normalizeQuizGameStatus(rawStatus));
         return;
     }
 
-    fetchQuizRoundEpoch()
-        .then(epoch => {
-            sessionStorage.setItem('quizRoundEpoch', String(epoch));
-            state.roundEpoch = epoch;
-            beginOrRedirect();
+    fetchQuizSessionMeta()
+        .then(meta => {
+            sessionStorage.setItem('quizRoundEpoch', String(meta.epoch));
+            sessionStorage.setItem('quizGameStatus', meta.gameStatus);
+            state.roundEpoch = meta.epoch;
+            beginOrRedirect(meta.gameStatus);
         })
         .catch(() => {
             window.location.href = 'index.html';

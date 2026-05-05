@@ -125,7 +125,7 @@
             sessionMsg.style.display = 'block';
 
             if (weddingQuizHasPlayedCurrentRound(epoch)) {
-                window.location.href = 'quiz.html?played=1';
+                window.location.href = 'quiz.html';
                 return;
             }
 
@@ -136,15 +136,11 @@
             }
 
             if (gameStatus === QUIZ_STATUS_ENDED) {
-                nameInput.disabled = true;
-                sessionMsg.style.display = 'none';
-                playedMsg.style.display = 'block';
-                playedMsg.textContent =
-                    'Game đã kết thúc, hiện không nhận thêm người chơi mới. Cảm ơn bạn đã quan tâm!';
+                window.location.href = 'quiz.html';
                 return;
             }
 
-            sessionMsg.textContent = 'Game chưa bắt đầu. Vui lòng chờ Admin mở game để tham gia.';
+            sessionMsg.textContent = 'Game chưa bắt đầu. Bạn hãy chờ ban tổ chức một xíu nhé!';
         };
 
         fetchQuizSessionMeta()
@@ -160,7 +156,7 @@
                 sessionMsg.style.display = 'block';
                 sessionMsg.textContent = latestStatus === QUIZ_STATUS_ENDED
                     ? 'Game đã kết thúc, không thể tham gia mới.'
-                    : 'Game chưa bắt đầu. Vui lòng chờ Admin mở game.';
+                    : 'Game chưa bắt đầu. Bạn hãy chờ ban tổ chức một xíu nhé!';
                 return;
             }
 
