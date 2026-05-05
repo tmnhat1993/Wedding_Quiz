@@ -78,7 +78,7 @@
                     >
 
                     <p id="sessionCheckMsg" class="text-center text-muted mb-2" style="font-size:0.82rem;">
-                        Đang kiểm tra phiên chơi…
+                        Đang kiểm tra trạng thái game…
                     </p>
                     <p id="alreadyPlayedMsg" class="alert alert-warning py-2 px-3 mb-3 text-center" style="display:none;font-size:0.88rem;"></p>
 
@@ -102,28 +102,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    function startQuiz() {
-        const epochStr = sessionStorage.getItem('quizRoundEpoch');
-        const epoch = epochStr !== null && epochStr !== '' ? Number(epochStr) : NaN;
-        if (!Number.isNaN(epoch) && weddingQuizHasPlayedCurrentRound(epoch)) {
-            return;
-        }
-
-        const inp  = document.getElementById('playerName');
-        const name = inp.value.trim();
-        if (!name) {
-            inp.classList.add('is-invalid');
-            inp.placeholder = 'Vui lòng nhập tên nhé!';
-            inp.focus();
-            return;
-        }
-        inp.classList.remove('is-invalid');
-        sessionStorage.setItem('playerName', name);
-        window.location.href = 'quiz.html';
-    }
-
     document.getElementById('playerName').addEventListener('keydown', e => {
-        if (e.key === 'Enter') startQuiz();
+        if (e.key === 'Enter' && typeof window.startQuiz === 'function') window.startQuiz();
         document.getElementById('playerName').classList.remove('is-invalid');
     });
 
@@ -132,25 +112,76 @@
         const startBtn   = document.getElementById('startQuizBtn');
         const playedMsg  = document.getElementById('alreadyPlayedMsg');
         const nameInput  = document.getElementById('playerName');
+        let latestStatus = QUIZ_STATUS_PENDING;
 
-        fetchQuizRoundEpoch()
-            .then(epoch => {
-                sessionStorage.setItem('quizRoundEpoch', String(epoch));
+        const applyUiBySession = ({ epoch, gameStatus }) => {
+            latestStatus = gameStatus;
+            sessionStorage.setItem('quizRoundEpoch', String(epoch));
+            sessionStorage.setItem('quizGameStatus', gameStatus);
+
+            startBtn.disabled = true;
+            nameInput.disabled = false;
+            playedMsg.style.display = 'none';
+            sessionMsg.style.display = 'block';
+
+            if (weddingQuizHasPlayedCurrentRound(epoch)) {
+                window.location.href = 'quiz.html?played=1';
+                return;
+            }
+
+            if (gameStatus === QUIZ_STATUS_STARTED) {
                 sessionMsg.style.display = 'none';
                 startBtn.disabled = false;
+                return;
+            }
 
-                if (weddingQuizHasPlayedCurrentRound(epoch)) {
-                    startBtn.disabled = true;
-                    nameInput.disabled = true;
-                    playedMsg.style.display = 'block';
-                    playedMsg.textContent =
-                        'Bạn đã tham gia phiên này rồi. Khi Ban tổ chức mở phiên mới (reset game), bạn có thể tham gia lại nhé!';
-                }
-            })
+            if (gameStatus === QUIZ_STATUS_ENDED) {
+                nameInput.disabled = true;
+                sessionMsg.style.display = 'none';
+                playedMsg.style.display = 'block';
+                playedMsg.textContent =
+                    'Game đã kết thúc, hiện không nhận thêm người chơi mới. Cảm ơn bạn đã quan tâm!';
+                return;
+            }
+
+            sessionMsg.textContent = 'Game chưa bắt đầu. Vui lòng chờ Admin mở game để tham gia.';
+        };
+
+        fetchQuizSessionMeta()
+            .then(applyUiBySession)
             .catch(() => {
-                sessionMsg.textContent = 'Không kiểm tra được phiên chơi. Thử tải lại trang hoặc kiểm tra kết nối.';
-                startBtn.disabled = false;
+                sessionMsg.textContent = 'Không kiểm tra được trạng thái game. Thử tải lại trang hoặc kiểm tra kết nối.';
             });
+
+        onQuizSessionMetaChange(applyUiBySession);
+
+        window.startQuiz = function startQuizWithStateCheck() {
+            if (latestStatus !== QUIZ_STATUS_STARTED) {
+                sessionMsg.style.display = 'block';
+                sessionMsg.textContent = latestStatus === QUIZ_STATUS_ENDED
+                    ? 'Game đã kết thúc, không thể tham gia mới.'
+                    : 'Game chưa bắt đầu. Vui lòng chờ Admin mở game.';
+                return;
+            }
+
+            const epochStr = sessionStorage.getItem('quizRoundEpoch');
+            const epoch = epochStr !== null && epochStr !== '' ? Number(epochStr) : NaN;
+            if (!Number.isNaN(epoch) && weddingQuizHasPlayedCurrentRound(epoch)) {
+                return;
+            }
+
+            const inp = document.getElementById('playerName');
+            const name = inp.value.trim();
+            if (!name) {
+                inp.classList.add('is-invalid');
+                inp.placeholder = 'Vui lòng nhập tên nhé!';
+                inp.focus();
+                return;
+            }
+            inp.classList.remove('is-invalid');
+            sessionStorage.setItem('playerName', name);
+            window.location.href = 'quiz.html';
+        };
     });
 
     // Floating petals

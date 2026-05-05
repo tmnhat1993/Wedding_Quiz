@@ -23,14 +23,17 @@ let state = {
 
 // ── Init ───────────────────────────────────────────────
 function initQuiz() {
-    state.playerName = sessionStorage.getItem('playerName');
-    if (!state.playerName) {
-        window.location.href = 'index.html';
-        return;
-    }
+    const searchParams = new URLSearchParams(window.location.search);
+    const forcePlayedView = searchParams.get('played') === '1';
+    const savedName = sessionStorage.getItem('playerName');
+    state.playerName = savedName || 'bạn';
 
     function beginOrRedirect() {
-        if (weddingQuizHasPlayedCurrentRound(state.roundEpoch)) {
+        if (weddingQuizHasPlayedCurrentRound(state.roundEpoch) || forcePlayedView) {
+            showFinalScreenOnly();
+            return;
+        }
+        if (!savedName) {
             window.location.href = 'index.html';
             return;
         }
@@ -54,6 +57,15 @@ function initQuiz() {
         .catch(() => {
             window.location.href = 'index.html';
         });
+}
+
+function showFinalScreenOnly() {
+    clearInterval(state.timerInterval);
+    document.getElementById('quizInProgress').style.display = 'none';
+    const result = document.getElementById('resultScreen');
+    result.style.display = 'block';
+    const nameEl = document.getElementById('resultName');
+    if (nameEl) nameEl.textContent = state.playerName;
 }
 
 // ── Show question ──────────────────────────────────────

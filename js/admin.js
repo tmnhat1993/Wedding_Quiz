@@ -1,12 +1,21 @@
 let adminDocs = [];
 let resetModal = null;
+let sessionUnsub = null;
+let currentSessionMeta = { epoch: 0, gameStatus: QUIZ_STATUS_PENDING };
 
 function initAdminPanel() {
     const modalEl = document.getElementById('confirmResetModal');
     resetModal = new bootstrap.Modal(modalEl);
 
+    document.getElementById('startGameBtn').addEventListener('click', () => setGameStatus(QUIZ_STATUS_STARTED));
+    document.getElementById('endGameBtn').addEventListener('click', () => setGameStatus(QUIZ_STATUS_ENDED));
     document.getElementById('resetGameBtn').addEventListener('click', () => resetModal.show());
     document.getElementById('confirmResetBtn').addEventListener('click', resetGame);
+
+    sessionUnsub = onQuizSessionMetaChange(meta => {
+        currentSessionMeta = meta;
+        renderGameStatus(meta.gameStatus, meta.epoch);
+    });
 
     loadPlayers();
 }
@@ -39,7 +48,7 @@ function renderPlayers(players) {
     const empty = document.getElementById('adminEmpty');
     const table = document.getElementById('playersTable');
 
-    stats.textContent = `Tong luot choi: ${players.length}`;
+    stats.textContent = `Tong luot choi: ${players.length} · Epoch: ${currentSessionMeta.epoch}`;
     tbody.innerHTML = '';
 
     if (players.length === 0) {
@@ -80,6 +89,42 @@ function renderPlayers(players) {
     });
 }
 
+function renderGameStatus(status, epoch) {
+    const statusEl = document.getElementById('adminGameStatus');
+    const startBtn = document.getElementById('startGameBtn');
+    const endBtn = document.getElementById('endGameBtn');
+
+    if (status === QUIZ_STATUS_STARTED) {
+        statusEl.textContent = `Trạng thái: ĐANG MỞ GAME (epoch ${epoch})`;
+        startBtn.style.display = 'none';
+        endBtn.style.display = 'inline-block';
+        return;
+    }
+
+    if (status === QUIZ_STATUS_ENDED) {
+        statusEl.textContent = `Trạng thái: ĐÃ KẾT THÚC (epoch ${epoch})`;
+        startBtn.style.display = 'none';
+        endBtn.style.display = 'none';
+        return;
+    }
+
+    statusEl.textContent = `Trạng thái: CHƯA BẮT ĐẦU (epoch ${epoch})`;
+    startBtn.style.display = 'inline-block';
+    endBtn.style.display = 'none';
+}
+
+function setGameStatus(nextStatus) {
+    const statusText = nextStatus === QUIZ_STATUS_STARTED ? 'mở game' : 'kết thúc game';
+    db.collection('meta').doc('session').set(
+        { gameStatus: nextStatus },
+        { merge: true }
+    )
+        .catch(err => {
+            console.error('Set game status error:', err);
+            alert(`Khong the ${statusText}. Hay kiem tra Firestore Rules.`);
+        });
+}
+
 function deletePlayer(docId) {
     if (!docId) return;
     db.collection('scores').doc(docId).delete()
@@ -105,7 +150,8 @@ function resetGame() {
             snapshot.docs.forEach(doc => batch.delete(doc.ref));
             const metaRef = db.collection('meta').doc('session');
             batch.set(metaRef, {
-                epoch: firebase.firestore.FieldValue.increment(1)
+                epoch: firebase.firestore.FieldValue.increment(1),
+                gameStatus: QUIZ_STATUS_PENDING
             }, { merge: true });
             return batch.commit();
         })
