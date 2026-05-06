@@ -8,21 +8,24 @@ const POINTS_SPEED_MAX  = 1000; // bonus tốc độ tối đa (trả lời ngay
 // Tổng tối đa: (1000 + 1000) × 10 = 20,000 điểm
 
 let state = {
-    playerName:      '',
-    roundEpoch:      0,
-    currentIndex:    0,
-    score:           0,
-    totalTime:       0,
-    correctCount:    0,
-    answers:         [],
-    timerInterval:   null,
-    timeRemaining:   TIME_PER_QUESTION,
-    questionStartMs: 0,
-    answered:        false
+    playerName:       '',
+    roundEpoch:       0,
+    currentIndex:     0,
+    score:            0,
+    totalTime:        0,
+    correctCount:     0,
+    answers:          [],
+    timerInterval:    null,
+    timeRemaining:    TIME_PER_QUESTION,
+    questionStartMs:  0,
+    pendingSelection: null,
+    questionCommitted: false
 };
 
 // ── Init ───────────────────────────────────────────────
 function initQuiz() {
+    bindNextQuestionButton();
+
     const savedName = sessionStorage.getItem('playerName');
     state.playerName = savedName || 'bạn';
 
@@ -60,6 +63,13 @@ function initQuiz() {
         });
 }
 
+function bindNextQuestionButton() {
+    const btn = document.getElementById('nextQuestionBtn');
+    if (!btn || btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', confirmAnswerAndNext);
+}
+
 function showFinalScreenOnly() {
     clearInterval(state.timerInterval);
     document.getElementById('quizInProgress').style.display = 'none';
@@ -76,11 +86,21 @@ function showQuestion(index) {
         return;
     }
 
-    state.currentIndex  = index;
-    state.answered      = false;
-    state.timeRemaining = TIME_PER_QUESTION;
+    state.currentIndex      = index;
+    state.pendingSelection  = null;
+    state.questionCommitted = false;
+    state.timeRemaining     = TIME_PER_QUESTION;
 
     const q = QUIZ_QUESTIONS[index];
+
+    const nextBtn = document.getElementById('nextQuestionBtn');
+    if (nextBtn) {
+        nextBtn.disabled = true;
+        const isLast = index === QUIZ_QUESTIONS.length - 1;
+        nextBtn.innerHTML = isLast
+            ? '<i class="bi bi-check-circle me-2"></i>Hoàn thành'
+            : '<i class="bi bi-arrow-right-circle me-2"></i>Câu tiếp theo';
+    }
 
     // Progress
     const pct = (index / QUIZ_QUESTIONS.length) * 100;
@@ -146,79 +166,106 @@ function updateTimerDisplay() {
         (t <= 5 ? ' danger' : t <= 10 ? ' warning' : '');
 }
 
-// ── Select answer ──────────────────────────────────────
+// ── Select answer (chỉ chọn / đổi ý, chưa chốt điểm) ───
 function selectAnswer(selectedIndex) {
-    if (state.answered) return;
-    state.answered = true;
+    if (state.questionCommitted) return;
+
+    state.pendingSelection = selectedIndex;
+    document.querySelectorAll('.option-btn').forEach((btn, i) => {
+        btn.classList.toggle('selected', i === selectedIndex);
+    });
+
+    const nextBtn = document.getElementById('nextQuestionBtn');
+    if (nextBtn) nextBtn.disabled = false;
+}
+
+function confirmAnswerAndNext() {
+    if (state.questionCommitted || state.pendingSelection === null) return;
+
+    state.questionCommitted = true;
     clearInterval(state.timerInterval);
 
     const timeTaken = Math.min(
         TIME_PER_QUESTION,
         Math.round((Date.now() - state.questionStartMs) / 1000)
     );
+    const selectedIndex = state.pendingSelection;
+    const timeRemainingForBonus = state.timeRemaining;
+
+    pushAnswerRecord(selectedIndex, timeTaken, timeRemainingForBonus);
+
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.disabled = true;
+    });
+    const nextBtn = document.getElementById('nextQuestionBtn');
+    if (nextBtn) nextBtn.disabled = true;
+
+    hideFeedback();
+    showQuestion(state.currentIndex + 1);
+}
+
+function pushAnswerRecord(selectedIndex, timeTaken, timeRemainingForBonus) {
     state.totalTime += timeTaken;
 
-    const q         = QUIZ_QUESTIONS[state.currentIndex];
+    const q = QUIZ_QUESTIONS[state.currentIndex];
     const isCorrect = selectedIndex === q.correct;
-    let   points    = 0;
+    let points = 0;
 
     if (isCorrect) {
-        const speedBonus = Math.round((state.timeRemaining / TIME_PER_QUESTION) * POINTS_SPEED_MAX);
+        const speedBonus = Math.round((timeRemainingForBonus / TIME_PER_QUESTION) * POINTS_SPEED_MAX);
         points = POINTS_BASE + speedBonus;
-        state.score        += points;
+        state.score += points;
         state.correctCount += 1;
     }
 
     state.answers.push({
         questionId: q.id,
-        selected:   selectedIndex,
-        correct:    q.correct,
+        selected: selectedIndex,
+        correct: q.correct,
         isCorrect,
         timeTaken,
         points
     });
-
-    const buttons = document.querySelectorAll('.option-btn');
-    buttons.forEach(btn => {
-        btn.disabled = true;
-    });
-
-    showStepFeedback(false);
-
-    setTimeout(() => {
-        hideFeedback();
-        showQuestion(state.currentIndex + 1);
-    }, 2200);
 }
 
 // ── Timeout ────────────────────────────────────────────
 function handleTimeout() {
-    if (state.answered) return;
-    state.answered = true;
-
-    state.totalTime += TIME_PER_QUESTION;
+    if (state.questionCommitted) return;
+    state.questionCommitted = true;
+    clearInterval(state.timerInterval);
 
     const q = QUIZ_QUESTIONS[state.currentIndex];
-    state.answers.push({
-        questionId: q.id,
-        selected:   -1,
-        correct:    q.correct,
-        isCorrect:  false,
-        timeTaken:  TIME_PER_QUESTION,
-        points:     0
-    });
+    const hadSelection = state.pendingSelection !== null;
+    const selectedIndex = hadSelection ? state.pendingSelection : -1;
 
-    const buttons = document.querySelectorAll('.option-btn');
-    buttons.forEach(btn => {
+    const timeTaken = TIME_PER_QUESTION;
+
+    if (hadSelection) {
+        pushAnswerRecord(selectedIndex, timeTaken, 0);
+    } else {
+        state.totalTime += timeTaken;
+        state.answers.push({
+            questionId: q.id,
+            selected: -1,
+            correct: q.correct,
+            isCorrect: false,
+            timeTaken: TIME_PER_QUESTION,
+            points: 0
+        });
+    }
+
+    document.querySelectorAll('.option-btn').forEach(btn => {
         btn.disabled = true;
     });
+    const nextBtn = document.getElementById('nextQuestionBtn');
+    if (nextBtn) nextBtn.disabled = true;
 
-    showStepFeedback(true);
+    showStepFeedback(!hadSelection);
 
     setTimeout(() => {
         hideFeedback();
         showQuestion(state.currentIndex + 1);
-    }, 2200);
+    }, hadSelection ? 1200 : 1800);
 }
 
 // ── Feedback toast (không tiết lộ đúng/sai cho khách) ──

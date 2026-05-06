@@ -276,6 +276,17 @@ body {
     transform: translateX(4px);
 }
 
+.option-btn.selected {
+    border-color: var(--rose);
+    background: var(--light-pink);
+    box-shadow: 0 0 0 2px rgba(196, 104, 122, 0.25);
+}
+
+.option-btn.selected .option-letter {
+    background: var(--rose);
+    color: #fff;
+}
+
 .option-btn.correct {
     background: #E8F5E9;
     border-color: #4CAF50;
