@@ -63,7 +63,9 @@ function renderPlayers(players) {
     players.forEach(player => {
         const tr = document.createElement('tr');
         const answersSummary = formatAnswersSummary(player.answers);
-        const timeStr = player.totalTime != null ? `${player.totalTime}s` : '—';
+        const timeStr = player.totalTime != null
+            ? `${Number(player.totalTime).toFixed(2)}s`
+            : '—';
         const correctStr = player.correctAnswers != null ? `${player.correctAnswers}/10` : '—';
         const scoreStr = Number(player.score || 0).toLocaleString();
         const playedAt = formatTimestamp(player.timestamp);

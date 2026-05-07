@@ -228,7 +228,8 @@ body {
     height: 100%;
     border-radius: 4px;
     background: linear-gradient(90deg, #4CAF50, #8BC34A);
-    transition: width 1s linear, background-color 0.5s;
+    /* Không transition width: tránh cảm giác thanh “chạy ngược” lên đầy khi sang câu mới */
+    transition: background-color 0.35s ease;
 }
 
 .timer-bar-fill.warning {
@@ -603,6 +604,24 @@ body {
 
 .result-actions-row .btn {
     min-width: 170px;
+}
+
+/* ── Leaderboard reveal ─────────────────────────────── */
+.lb-reveal-btn {
+    font-size: 1.15rem;
+    font-weight: 800;
+    padding: 1.1rem 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(196, 104, 122, 0.35);
+}
+
+.lb-table-reveal {
+    animation: lb-table-in 0.45s ease both;
+}
+
+@keyframes lb-table-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 768px) {

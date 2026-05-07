@@ -1,12 +1,10 @@
 let resultState = {
     currentIndex: 0,
     votesByQuestion: {},
-    revealedVotesByQuestion: {},
     highlightedAnswersByQuestion: {}
 };
 
 function initResultsPage() {
-    document.getElementById('showVotesBtn').addEventListener('click', toggleVoteChart);
     document.getElementById('showAnswerBtn').addEventListener('click', highlightCorrectAnswer);
     document.getElementById('nextResultBtn').addEventListener('click', nextQuestionResult);
     document.getElementById('goLeaderboardBtn').addEventListener('click', () => {
@@ -57,15 +55,11 @@ function renderResultQuestion(index) {
     document.getElementById('resultQuestionCounter').textContent = `Câu ${index + 1} / ${QUIZ_QUESTIONS.length}`;
     document.getElementById('resultProgressBar').style.width = ((index + 1) / QUIZ_QUESTIONS.length) * 100 + '%';
     document.getElementById('resultQuestionText').textContent = q.question;
-    renderAnswerStatsRows(false);
+    renderAnswerStatsRows(true);
 
     const isLast = index === QUIZ_QUESTIONS.length - 1;
     document.getElementById('nextResultBtn').style.display = isLast ? 'none' : 'block';
     document.getElementById('goLeaderboardBtn').style.display = isLast ? 'block' : 'none';
-}
-
-function toggleVoteChart() {
-    renderAnswerStatsRows(true);
 }
 
 function renderAnswerStatsRows(withAnimation) {
@@ -74,12 +68,6 @@ function renderAnswerStatsRows(withAnimation) {
     const questionId = q.id;
     const counts = resultState.votesByQuestion[q.id] || new Array(q.options.length).fill(0);
     const totalVotes = counts.reduce((sum, value) => sum + value, 0);
-    const shouldAnimateReveal = withAnimation;
-
-    if (shouldAnimateReveal) {
-        resultState.revealedVotesByQuestion[questionId] = true;
-    }
-    const isRevealed = resultState.revealedVotesByQuestion[questionId] === true;
 
     panel.innerHTML = '';
     const chart = document.createElement('div');
@@ -88,10 +76,9 @@ function renderAnswerStatsRows(withAnimation) {
     q.options.forEach((option, idx) => {
         const value = counts[idx] || 0;
         const percent = totalVotes > 0 ? Math.round((value / totalVotes) * 100) : 0;
-        const startAtZero = !isRevealed || shouldAnimateReveal;
-        const initialWidth = startAtZero ? 0 : percent;
-        const initialCount = startAtZero ? 0 : value;
-        const initialPercent = startAtZero ? 0 : percent;
+        const initialWidth = withAnimation ? 0 : percent;
+        const initialCount = withAnimation ? 0 : value;
+        const initialPercent = withAnimation ? 0 : percent;
         const row = document.createElement('div');
         row.className = 'answer-stats-row';
         row.innerHTML = `
@@ -113,7 +100,7 @@ function renderAnswerStatsRows(withAnimation) {
         applyCorrectAnswerHighlight(questionId);
     }
 
-    if (!shouldAnimateReveal) return;
+    if (!withAnimation) return;
 
     requestAnimationFrame(() => {
         panel.querySelectorAll('.vote-chart-bar').forEach(barEl => {
@@ -137,7 +124,7 @@ function animateVoteValues(panel) {
             const targetCount = Number(el.dataset.count || 0);
             const targetPercent = Number(el.dataset.percent || 0);
             const currentCount = Math.round(targetCount * eased);
-            const currentPercent = Math.round(targetPercent * eased);
+            const currentPercent = Math.round(targetPercent * eased * 10) / 10;
             el.textContent = `${currentCount} người (${currentPercent}%)`;
         });
 

@@ -2,23 +2,24 @@
 //  QUIZ LOGIC
 // ════════════════════════════════════════════════════════
 
-const TIME_PER_QUESTION = 30;
-const POINTS_BASE       = 1000; // điểm cố định nếu trả lời đúng
-const POINTS_SPEED_MAX  = 1000; // bonus tốc độ tối đa (trả lời ngay = +1000, chậm dần về 0)
-// Tổng tối đa: (1000 + 1000) × 10 = 20,000 điểm
+const TIME_PER_QUESTION_SEC = 10;
+const TIME_PER_QUESTION_MS  = TIME_PER_QUESTION_SEC * 1000;
+// Đúng: điểm cao, phần thưởng tốc độ tính theo ms còn lại (phân hóa fine-grained)
+const CORRECT_BASE     = 4000;
+const CORRECT_SPEED_MAX = 6000; // max ~10k/câu đúng
+const WRONG_POINTS     = 18;    // sai: cực thấp so với đúng (max ~180 nếu sai hết)
 
 let state = {
-    playerName:       '',
-    roundEpoch:       0,
-    currentIndex:     0,
-    score:            0,
-    totalTime:        0,
-    correctCount:     0,
-    answers:          [],
-    timerInterval:    null,
-    timeRemaining:    TIME_PER_QUESTION,
-    questionStartMs:  0,
-    pendingSelection: null,
+    playerName:        '',
+    roundEpoch:        0,
+    currentIndex:      0,
+    score:             0,
+    totalTimeMs:       0,
+    correctCount:      0,
+    answers:           [],
+    timerInterval:     null,
+    questionStartMs:   0,
+    pendingSelection:  null,
     questionCommitted: false
 };
 
@@ -89,7 +90,6 @@ function showQuestion(index) {
     state.currentIndex      = index;
     state.pendingSelection  = null;
     state.questionCommitted = false;
-    state.timeRemaining     = TIME_PER_QUESTION;
 
     const q = QUIZ_QUESTIONS[index];
 
@@ -102,13 +102,11 @@ function showQuestion(index) {
             : '<i class="bi bi-arrow-right-circle me-2"></i>Câu tiếp theo';
     }
 
-    // Progress
     const pct = (index / QUIZ_QUESTIONS.length) * 100;
     document.getElementById('progressBar').style.width = pct + '%';
     document.getElementById('questionCounter').textContent =
         `Câu ${index + 1} / ${QUIZ_QUESTIONS.length}`;
 
-    // Render options
     const wrap = document.getElementById('optionsContainer');
     wrap.innerHTML = '';
     q.options.forEach((opt, i) => {
@@ -120,50 +118,51 @@ function showQuestion(index) {
         wrap.appendChild(btn);
     });
 
-    // Question text with fade-in
     const qEl = document.getElementById('questionText');
     qEl.classList.remove('fade-in');
     void qEl.offsetWidth;
     qEl.textContent = q.question;
     qEl.classList.add('fade-in');
 
-    // Start timer
     startTimer();
 }
 
-// ── Timer ──────────────────────────────────────────────
+// ── Timer (đếm theo ms → hiển thị 1 số thập phân) ───────
 function startTimer() {
     clearInterval(state.timerInterval);
     state.questionStartMs = Date.now();
     updateTimerDisplay();
 
     state.timerInterval = setInterval(() => {
-        state.timeRemaining = Math.max(
-            0,
-            TIME_PER_QUESTION - Math.round((Date.now() - state.questionStartMs) / 1000)
-        );
-        updateTimerDisplay();
-        if (state.timeRemaining <= 0) {
+        const elapsed = Date.now() - state.questionStartMs;
+        const remainingMs = Math.max(0, TIME_PER_QUESTION_MS - elapsed);
+        updateTimerDisplay(remainingMs);
+        if (remainingMs <= 0) {
             clearInterval(state.timerInterval);
-            if (!state.answered) handleTimeout();
+            if (!state.questionCommitted) {
+                handleTimeout();
+            }
         }
-    }, 250);
+    }, 50);
 }
 
-function updateTimerDisplay() {
-    const t   = state.timeRemaining;
-    const pct = (t / TIME_PER_QUESTION) * 100;
+function updateTimerDisplay(remainingMs) {
+    const rem = remainingMs != null
+        ? remainingMs
+        : Math.max(0, TIME_PER_QUESTION_MS - (Date.now() - state.questionStartMs));
+    const tSec = rem / 1000;
+    const pct = (rem / TIME_PER_QUESTION_MS) * 100;
 
     const numEl  = document.getElementById('timerNumber');
     const barEl  = document.getElementById('timerBar');
 
-    numEl.textContent = t;
+    numEl.textContent = tSec.toFixed(1);
     numEl.className   = 'timer-number' +
-        (t <= 5 ? ' danger' : t <= 10 ? ' warning' : '');
+        (tSec <= 3 ? ' danger' : tSec <= 6 ? ' warning' : '');
 
     barEl.style.width = pct + '%';
     barEl.className   = 'timer-bar-fill' +
-        (t <= 5 ? ' danger' : t <= 10 ? ' warning' : '');
+        (tSec <= 3 ? ' danger' : tSec <= 6 ? ' warning' : '');
 }
 
 // ── Select answer (chỉ chọn / đổi ý, chưa chốt điểm) ───
@@ -185,14 +184,14 @@ function confirmAnswerAndNext() {
     state.questionCommitted = true;
     clearInterval(state.timerInterval);
 
-    const timeTaken = Math.min(
-        TIME_PER_QUESTION,
-        Math.round((Date.now() - state.questionStartMs) / 1000)
+    const elapsedMs = Math.min(
+        TIME_PER_QUESTION_MS,
+        Date.now() - state.questionStartMs
     );
+    const remainingMs = Math.max(0, TIME_PER_QUESTION_MS - elapsedMs);
     const selectedIndex = state.pendingSelection;
-    const timeRemainingForBonus = state.timeRemaining;
 
-    pushAnswerRecord(selectedIndex, timeTaken, timeRemainingForBonus);
+    pushAnswerRecord(selectedIndex, elapsedMs, remainingMs);
 
     document.querySelectorAll('.option-btn').forEach(btn => {
         btn.disabled = true;
@@ -204,26 +203,38 @@ function confirmAnswerAndNext() {
     showQuestion(state.currentIndex + 1);
 }
 
-function pushAnswerRecord(selectedIndex, timeTaken, timeRemainingForBonus) {
-    state.totalTime += timeTaken;
+/**
+ * remainingMs dùng cho bonus tốc độ (đúng). Sai / không chọn: không dùng bonus.
+ */
+function pushAnswerRecord(selectedIndex, elapsedMs, remainingMsForBonus) {
+    state.totalTimeMs += elapsedMs;
 
     const q = QUIZ_QUESTIONS[state.currentIndex];
-    const isCorrect = selectedIndex === q.correct;
-    let points = 0;
+    const timeTakenSec = Math.round(elapsedMs) / 1000;
 
-    if (isCorrect) {
-        const speedBonus = Math.round((timeRemainingForBonus / TIME_PER_QUESTION) * POINTS_SPEED_MAX);
-        points = POINTS_BASE + speedBonus;
-        state.score += points;
+    const isNoAnswer = selectedIndex < 0;
+    const isCorrect  = !isNoAnswer && selectedIndex === q.correct;
+
+    let points = 0;
+    if (isNoAnswer) {
+        points = 0;
+    } else if (isCorrect) {
+        points = CORRECT_BASE + Math.floor(
+            CORRECT_SPEED_MAX * remainingMsForBonus / TIME_PER_QUESTION_MS
+        );
         state.correctCount += 1;
+    } else {
+        points = WRONG_POINTS;
     }
+
+    state.score += points;
 
     state.answers.push({
         questionId: q.id,
-        selected: selectedIndex,
-        correct: q.correct,
+        selected:   selectedIndex,
+        correct:    q.correct,
         isCorrect,
-        timeTaken,
+        timeTaken:  timeTakenSec,
         points
     });
 }
@@ -238,19 +249,20 @@ function handleTimeout() {
     const hadSelection = state.pendingSelection !== null;
     const selectedIndex = hadSelection ? state.pendingSelection : -1;
 
-    const timeTaken = TIME_PER_QUESTION;
+    const elapsedMs = TIME_PER_QUESTION_MS;
+    const remainingMs = 0;
 
     if (hadSelection) {
-        pushAnswerRecord(selectedIndex, timeTaken, 0);
+        pushAnswerRecord(selectedIndex, elapsedMs, remainingMs);
     } else {
-        state.totalTime += timeTaken;
+        state.totalTimeMs += elapsedMs;
         state.answers.push({
             questionId: q.id,
-            selected: -1,
-            correct: q.correct,
-            isCorrect: false,
-            timeTaken: TIME_PER_QUESTION,
-            points: 0
+            selected:   -1,
+            correct:    q.correct,
+            isCorrect:  false,
+            timeTaken:  TIME_PER_QUESTION_SEC,
+            points:     0
         });
     }
 
@@ -268,7 +280,7 @@ function handleTimeout() {
     }, hadSelection ? 1200 : 1800);
 }
 
-// ── Feedback toast (không tiết lộ đúng/sai cho khách) ──
+// ── Feedback toast ─────────────────────────────────────
 function showStepFeedback(isTimeout) {
     const toast = document.getElementById('feedbackToast');
     const icon  = isTimeout ? '⏰' : '💒';
@@ -310,10 +322,11 @@ function endQuiz() {
 
 // ── Save to Firebase ───────────────────────────────────
 function saveScore() {
+    const totalTimeSec = state.totalTimeMs / 1000;
     const data = {
         name:           state.playerName,
         score:          state.score,
-        totalTime:      state.totalTime,
+        totalTime:      Math.round(totalTimeSec * 1000) / 1000,
         correctAnswers: state.correctCount,
         answers:        state.answers,
         timestamp:      firebase.firestore.FieldValue.serverTimestamp()
@@ -325,4 +338,3 @@ function saveScore() {
         })
         .catch(err => console.error('Firebase save error:', err));
 }
-

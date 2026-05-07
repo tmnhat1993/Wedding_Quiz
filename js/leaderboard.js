@@ -4,11 +4,41 @@
 
 const currentPlayerName = sessionStorage.getItem('playerName') || '';
 const POLL_INTERVAL_MS  = 15000;
+const LEADERBOARD_TOP_N = 10;
 let   pollTimer         = null;
+let   lastSorted        = null;
+let   lbRevealed        = false;
 
 function initLeaderboard() {
+    const revealBtn = document.getElementById('lbRevealBtn');
+    if (revealBtn) {
+        revealBtn.addEventListener('click', () => {
+            revealLeaderboard();
+        });
+    }
     fetchScores();
     pollTimer = setInterval(fetchScores, POLL_INTERVAL_MS);
+}
+
+function revealLeaderboard() {
+    if (lbRevealed) return;
+    lbRevealed = true;
+    const panel = document.getElementById('lbRevealPanel');
+    const table = document.getElementById('lbTableSection');
+    if (panel) panel.classList.add('d-none');
+    if (table) {
+        table.classList.remove('d-none');
+        table.classList.add('lb-table-reveal');
+    }
+    if (lastSorted != null) {
+        renderLeaderboard(lastSorted);
+    } else {
+        const listEl = document.getElementById('listEl');
+        if (listEl) {
+            listEl.innerHTML =
+                '<div class="lb-empty text-center py-3">Đang tải bảng xếp hạng…</div>';
+        }
+    }
 }
 
 function fetchScores() {
@@ -18,12 +48,22 @@ function fetchScores() {
         .then(snapshot => {
             const all = snapshot.docs.map(d => d.data());
             const best = getBestPerPlayer(all);
-            renderLeaderboard(best);
+            lastSorted = best;
+            if (lbRevealed) {
+                renderLeaderboard(best);
+            } else {
+                const listEl = document.getElementById('listEl');
+                if (listEl) listEl.innerHTML = '';
+            }
         })
         .catch(err => {
             console.error('Leaderboard error:', err);
-            document.getElementById('listEl').innerHTML =
+            const msg =
                 '<div class="lb-empty">⚠️ Không thể tải bảng xếp hạng.<br>Kiểm tra cấu hình Firebase.</div>';
+            if (lbRevealed) {
+                const listEl = document.getElementById('listEl');
+                if (listEl) listEl.innerHTML = msg;
+            }
         });
 }
 
@@ -53,7 +93,8 @@ function renderLeaderboard(sorted) {
     const listEl = document.getElementById('listEl');
     const total  = document.getElementById('totalPlayers');
 
-    total.textContent = `${sorted.length} người chơi`;
+    const shown = sorted.slice(0, LEADERBOARD_TOP_N);
+    total.textContent = `Top ${LEADERBOARD_TOP_N} · ${sorted.length} người tham gia`;
 
     if (sorted.length === 0) {
         listEl.innerHTML =
@@ -63,12 +104,12 @@ function renderLeaderboard(sorted) {
 
     listEl.innerHTML = '';
 
-    sorted.slice(0, 20).forEach((player, i) => {
+    shown.forEach((player, i) => {
         const rank    = i + 1;
         const isMe    = currentPlayerName &&
                         player.name.trim().toLowerCase() === currentPlayerName.trim().toLowerCase();
         const badgeTxt = rank <= 3 ? RANK_ICONS[rank - 1] : rank;
-        const timeStr  = player.totalTime != null ? formatTime(player.totalTime) : '—';
+        const timeStr  = player.totalTime != null ? formatTimeSeconds(player.totalTime) : '—';
 
         const item = document.createElement('div');
         item.className = `lb-item rank-${rank}${isMe ? ' current-player' : ''}`;
@@ -76,17 +117,27 @@ function renderLeaderboard(sorted) {
         item.innerHTML = `
             <div class="rank-badge">${badgeTxt}</div>
             <div class="lb-name">${escapeHtml(player.name)}${isMe ? ' <span style="font-size:0.75rem;color:var(--rose)">(bạn)</span>' : ''}</div>
-            <div class="lb-score">${player.score} <span style="font-size:0.75rem;font-weight:400">điểm</span></div>
+            <div class="lb-score">${formatScoreDisplay(player.score)} <span style="font-size:0.75rem;font-weight:400">điểm</span></div>
             <div class="lb-time">${timeStr}</div>
         `;
         listEl.appendChild(item);
     });
 }
 
-function formatTime(s) {
+function formatTimeSeconds(s) {
+    if (s == null || Number.isNaN(s)) return '—';
     const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return m > 0 ? `${m}m ${String(sec).padStart(2,'0')}s` : `${s}s`;
+    const sec = s - m * 60;
+    if (m > 0) {
+        return `${m}m ${String(Math.floor(sec)).padStart(2, '0')}s`;
+    }
+    return `${sec.toFixed(2)}s`;
+}
+
+function formatScoreDisplay(score) {
+    if (score == null) return '0';
+    const n = Number(score);
+    return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
 function escapeHtml(str) {
