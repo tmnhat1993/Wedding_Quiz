@@ -6,39 +6,10 @@ const currentPlayerName = sessionStorage.getItem('playerName') || '';
 const POLL_INTERVAL_MS  = 15000;
 const LEADERBOARD_TOP_N = 10;
 let   pollTimer         = null;
-let   lastSorted        = null;
-let   lbRevealed        = false;
 
 function initLeaderboard() {
-    const revealBtn = document.getElementById('lbRevealBtn');
-    if (revealBtn) {
-        revealBtn.addEventListener('click', () => {
-            revealLeaderboard();
-        });
-    }
     fetchScores();
     pollTimer = setInterval(fetchScores, POLL_INTERVAL_MS);
-}
-
-function revealLeaderboard() {
-    if (lbRevealed) return;
-    lbRevealed = true;
-    const panel = document.getElementById('lbRevealPanel');
-    const table = document.getElementById('lbTableSection');
-    if (panel) panel.classList.add('d-none');
-    if (table) {
-        table.classList.remove('d-none');
-        table.classList.add('lb-table-reveal');
-    }
-    if (lastSorted != null) {
-        renderLeaderboard(lastSorted);
-    } else {
-        const listEl = document.getElementById('listEl');
-        if (listEl) {
-            listEl.innerHTML =
-                '<div class="lb-empty text-center py-3">Đang tải bảng xếp hạng…</div>';
-        }
-    }
 }
 
 function fetchScores() {
@@ -48,22 +19,14 @@ function fetchScores() {
         .then(snapshot => {
             const all = snapshot.docs.map(d => d.data());
             const best = getBestPerPlayer(all);
-            lastSorted = best;
-            if (lbRevealed) {
-                renderLeaderboard(best);
-            } else {
-                const listEl = document.getElementById('listEl');
-                if (listEl) listEl.innerHTML = '';
-            }
+            renderLeaderboard(best);
         })
         .catch(err => {
             console.error('Leaderboard error:', err);
             const msg =
                 '<div class="lb-empty">⚠️ Không thể tải bảng xếp hạng.<br>Kiểm tra cấu hình Firebase.</div>';
-            if (lbRevealed) {
-                const listEl = document.getElementById('listEl');
-                if (listEl) listEl.innerHTML = msg;
-            }
+            const listEl = document.getElementById('listEl');
+            if (listEl) listEl.innerHTML = msg;
         });
 }
 

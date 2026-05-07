@@ -20,11 +20,10 @@
     <div class="row justify-content-center">
         <div class="col-12">
             <div class="wedding-card">
-                <div class="quiz-header">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span style="font-size:0.85rem;opacity:0;pointer-events:none;">Câu 10 / 10</span>
-                        <span style="font-size:18px;font-weight:800;text-align:center;display:block;opacity:0.95;">Kết Quả</span>
-                        <span id="resultQuestionCounter" style="font-size:0.85rem;opacity:0.75;">Câu 1 / 10</span>
+                <div id="resultHeaderBar" class="quiz-header" style="display:none;">
+                    <div class="position-relative text-center mb-2">
+                        <span id="resultHeaderTitle" style="font-size:18px;font-weight:800;opacity:0.95;display:none;">Kết Quả</span>
+                        <span id="resultQuestionCounter" style="font-size:0.85rem;opacity:0.75;position:absolute;right:0;top:50%;transform:translateY(-50%);">Câu 1 / 10</span>
                     </div>
                     <div class="progress">
                         <div id="resultProgressBar" class="progress-bar" style="width:0%"></div>
@@ -32,19 +31,48 @@
                 </div>
 
                 <div class="card-body p-3 p-md-4">
-                    <p id="resultQuestionText" class="question-text mb-3">Đang tải câu hỏi…</p>
-                    <div id="resultRowsContainer"></div>
+                    <div id="resultIntro" class="text-center py-3">
+                        <div class="mb-3">
+                            <h2 class="wedding-title mb-0">Mỹ Dung</h2>
+                            <span class="heart-divider">♥</span>
+                            <h2 class="wedding-title mb-0">Minh Kiệt</h2>
+                            <p class="wedding-date mt-2 mb-0">10 · 05 · 2026</p>
+                        </div>
+                        <p class="mb-2" style="font-size:0.95rem;color:var(--dark);font-weight:600;line-height:1.45;">
+                            Chào mừng quý khách đến với mini game thứ 2
+                        </p>
+                        <p class="text-muted mb-3" style="font-size:0.9rem;line-height:1.55;">
+                            Trong tiệc hôm nay, để vào trò chơi quý khách vui lòng quét mã QR<br>
+                            hoặc mở đúng đường dẫn như trên màn hình sự kiện, rồi nhập tên của mình.<br>
+                            chúc quý khách chơi vui và may mắn!
+                        </p>
+                        <div class="text-center mb-3">
+                            <img
+                                src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Ftmnhat1993.github.io%2FWedding_Quiz%2F"
+                                alt="QR vào mini game"
+                                style="width:150px;height:150px;border-radius:12px;border:1px solid #f0dde2;padding:6px;background:#fff;"
+                            >
+                        </div>
+                        <button id="startCheckAnswersBtn" class="btn btn-wedding px-4">
+                            <i class="bi bi-search-heart me-1"></i>Kiểm tra đáp án
+                        </button>
+                    </div>
 
-                    <div class="result-actions-row mt-3">
-                        <button id="showAnswerBtn" class="btn btn-outline-success">
-                            <i class="bi bi-check-circle me-1"></i>Đáp án
-                        </button>
-                        <button id="nextResultBtn" class="btn btn-wedding">
-                            <i class="bi bi-arrow-right-circle me-1"></i>Tiếp theo
-                        </button>
-                        <button id="goLeaderboardBtn" class="btn btn-warning" style="display:none;">
-                            <i class="bi bi-trophy me-1"></i>BẢNG XẾP HẠNG
-                        </button>
+                    <div id="resultFlow" style="display:none;">
+                        <p id="resultQuestionText" class="question-text mb-3">Đang tải câu hỏi…</p>
+                        <div id="resultRowsContainer"></div>
+
+                        <div class="result-actions-row mt-3">
+                            <button id="showAnswerBtn" class="btn btn-outline-success">
+                                <i class="bi bi-check-circle me-1"></i>Đáp án
+                            </button>
+                            <button id="nextResultBtn" class="btn btn-wedding">
+                                <i class="bi bi-arrow-right-circle me-1"></i>Tiếp theo
+                            </button>
+                            <button id="goLeaderboardBtn" class="btn btn-warning" style="display:none;">
+                                <i class="bi bi-trophy me-1"></i>BẢNG XẾP HẠNG
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

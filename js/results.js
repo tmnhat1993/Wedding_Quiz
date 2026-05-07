@@ -1,19 +1,43 @@
 let resultState = {
     currentIndex: 0,
     votesByQuestion: {},
-    highlightedAnswersByQuestion: {}
+    highlightedAnswersByQuestion: {},
+    hasStarted: false
 };
 
 function initResultsPage() {
+    const startBtn = document.getElementById('startCheckAnswersBtn');
+    if (startBtn) {
+        startBtn.addEventListener('click', startCheckAnswersFlow);
+    }
     document.getElementById('showAnswerBtn').addEventListener('click', highlightCorrectAnswer);
     document.getElementById('nextResultBtn').addEventListener('click', nextQuestionResult);
     document.getElementById('goLeaderboardBtn').addEventListener('click', () => {
         window.location.href = 'leaderboard.html';
     });
 
+    document.getElementById('resultQuestionCounter').textContent = '';
+    document.getElementById('resultProgressBar').style.width = '0%';
+
     fetchVotesData().then(() => {
-        renderResultQuestion(0);
+        if (startBtn) startBtn.disabled = false;
     });
+}
+
+function startCheckAnswersFlow() {
+    if (resultState.hasStarted) return;
+    resultState.hasStarted = true;
+
+    const intro = document.getElementById('resultIntro');
+    const flow = document.getElementById('resultFlow');
+    const title = document.getElementById('resultHeaderTitle');
+    const header = document.getElementById('resultHeaderBar');
+    if (intro) intro.style.display = 'none';
+    if (flow) flow.style.display = 'block';
+    if (title) title.style.display = 'inline';
+    if (header) header.style.display = 'block';
+
+    renderResultQuestion(0);
 }
 
 function fetchVotesData() {
