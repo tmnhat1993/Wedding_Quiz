@@ -38,8 +38,14 @@
                     <h4 class="text-center mb-1" style="color:var(--gold);font-family:'Playfair Display',serif;">
                         🎊 Hỏi đáp vui
                     </h4>
+                    <p id="welcomeShort" class="text-center mb-2" style="font-size:0.95rem;color:var(--dark);font-weight:600;line-height:1.45;">
+                        Chào mừng quý khách đến với mini game thứ 2
+                    </p>
+                    <p id="welcomeExtended" class="text-center text-muted mb-3" style="font-size:0.9rem;line-height:1.55;display:none;">
+                        Trong tiệc hôm nay, để vào trò chơi quý khách vui lòng quét mã QR hoặc mở đúng đường dẫn như trên màn hình sự kiện, rồi nhập tên của mình. Khi đã nhập xong, xin chờ ban tổ chức mở game trong giây lát — chúc quý khách chơi vui và may mắn!
+                    </p>
                     <p class="text-center text-muted mb-4" style="font-size:0.9rem;">
-                        Bạn hiểu cô dâu chú rể đến đâu?  Tham gia ngay để nhận những phần quà đáng yêu từ cặp đôi nhé — kết quả sẽ được công bố trong chương trình!
+                        Bạn hiểu cô dâu chú rể đến đâu? Tham gia ngay để nhận những phần quà đáng yêu từ cặp đôi nhé — kết quả sẽ được công bố trong chương trình!
                     </p>
 
                     <!-- Stats -->
@@ -112,6 +118,7 @@
         const startBtn   = document.getElementById('startQuizBtn');
         const playedMsg  = document.getElementById('alreadyPlayedMsg');
         const nameInput  = document.getElementById('playerName');
+        const welcomeExt = document.getElementById('welcomeExtended');
         let latestStatus = QUIZ_STATUS_PENDING;
 
         const applyUiBySession = ({ epoch, gameStatus }) => {
@@ -123,6 +130,10 @@
             nameInput.disabled = false;
             playedMsg.style.display = 'none';
             sessionMsg.style.display = 'block';
+
+            if (welcomeExt) {
+                welcomeExt.style.display = gameStatus === QUIZ_STATUS_PENDING ? 'block' : 'none';
+            }
 
             if (weddingQuizHasPlayedCurrentRound(epoch)) {
                 window.location.href = 'quiz.html';
