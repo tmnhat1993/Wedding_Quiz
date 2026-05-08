@@ -3,6 +3,7 @@
 // ════════════════════════════════════════════════════════
 
 const currentPlayerName = sessionStorage.getItem('playerName') || '';
+const currentPlayerTag  = sessionStorage.getItem('playerTag') || '';
 const POLL_INTERVAL_MS  = 15000;
 const LEADERBOARD_TOP_N = 10;
 let   pollTimer         = null;
@@ -17,7 +18,7 @@ function fetchScores() {
         .orderBy('timestamp', 'desc')
         .get()
         .then(snapshot => {
-            const all = snapshot.docs.map(d => d.data());
+            const all = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             const best = getBestPerPlayer(all);
             renderLeaderboard(best);
         })
@@ -30,11 +31,11 @@ function fetchScores() {
         });
 }
 
-// ── Keep best score per player name ───────────────────
+// ── Keep best score per player (by tag if available) ─
 function getBestPerPlayer(all) {
     const map = {};
     all.forEach(s => {
-        const key = s.name ? s.name.trim().toLowerCase() : '?';
+        const key = s.playerTag || (s.name ? s.name.trim().toLowerCase() : `doc:${s.id}`);
         const cur = map[key];
         if (!cur ||
             s.score > cur.score ||
@@ -69,8 +70,13 @@ function renderLeaderboard(sorted) {
 
     shown.forEach((player, i) => {
         const rank    = i + 1;
-        const isMe    = currentPlayerName &&
-                        player.name.trim().toLowerCase() === currentPlayerName.trim().toLowerCase();
+        const hasName = typeof player.name === 'string' && player.name.trim() !== '';
+        const playerName = hasName ? player.name.trim() : 'Người chơi';
+        const playerTag = formatPlayerTag(player);
+        const isMe = currentPlayerTag
+            ? playerTag === currentPlayerTag
+            : (currentPlayerName &&
+                playerName.toLowerCase() === currentPlayerName.trim().toLowerCase());
         const badgeTxt = rank <= 3 ? RANK_ICONS[rank - 1] : rank;
         const timeStr  = player.totalTime != null ? formatTimeSeconds(player.totalTime) : '—';
 
@@ -79,12 +85,18 @@ function renderLeaderboard(sorted) {
         item.style.animationDelay = (i * 0.05) + 's';
         item.innerHTML = `
             <div class="rank-badge">${badgeTxt}</div>
-            <div class="lb-name">${escapeHtml(player.name)}${isMe ? ' <span style="font-size:0.75rem;color:var(--rose)">(bạn)</span>' : ''}</div>
-            <div class="lb-score">${formatScoreDisplay(player.score)} <span style="font-size:0.75rem;font-weight:400">điểm</span></div>
+            <div class="lb-name">${escapeHtml(playerName)} <span class="lb-player-tag">${escapeHtml(playerTag)}</span>${isMe ? ' <span class="lb-you-tag">(bạn)</span>' : ''}</div>
+            <div class="lb-score">${formatScoreDisplay(player.score)} <span class="lb-unit">điểm</span></div>
             <div class="lb-time">${timeStr}</div>
         `;
         listEl.appendChild(item);
     });
+}
+
+function formatPlayerTag(player) {
+    if (player.playerTag) return player.playerTag;
+    if (!player.id) return '#----';
+    return `#${String(player.id).slice(0, 4).toUpperCase()}`;
 }
 
 function formatTimeSeconds(s) {

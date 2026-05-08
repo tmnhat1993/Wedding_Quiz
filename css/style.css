@@ -369,6 +369,27 @@ body {
     color: var(--rose);
 }
 
+.result-screen-content {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.result-title-lg {
+    font-size: 2.15rem;
+}
+
+.result-player-lg {
+    font-size: 1.3rem;
+}
+
+.result-message-lg {
+    font-size: 1.12rem;
+}
+
+.result-date-lg {
+    font-size: 1.05rem;
+}
+
 .result-score-big {
     font-family: 'Playfair Display', serif;
     font-size: 4.5rem;
@@ -412,12 +433,12 @@ body {
 
 .lb-header h2 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
+    font-size: 1.9rem;
     margin: 0;
 }
 
 .lb-total-players {
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 700;
     color: var(--rose);
 }
@@ -426,7 +447,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.7rem 1rem;
+    padding: 0.95rem 1rem;
     border-radius: 12px;
     margin-bottom: 0.5rem;
     background: #fff;
@@ -449,15 +470,15 @@ body {
 .lb-item.current-player { outline: 2px solid var(--rose); }
 
 .rank-badge {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 0.88rem;
+    font-size: 1rem;
     background: var(--light-pink);
     color: var(--rose);
 }
@@ -470,20 +491,36 @@ body {
     font-weight: 700;
     color: var(--dark);
     flex-grow: 1;
-    font-size: 0.95rem;
+    font-size: 1.2rem;
 }
 
 .lb-score {
     font-weight: 800;
     color: var(--rose);
-    font-size: 1.1rem;
+    font-size: 1.35rem;
 }
 
 .lb-time {
-    font-size: 0.75rem;
+    font-size: 1rem;
     color: #aaa;
-    min-width: 3rem;
+    min-width: 4rem;
     text-align: right;
+}
+
+.lb-player-tag {
+    font-size: 0.9em;
+    font-weight: 800;
+    color: #8d7381;
+}
+
+.lb-you-tag {
+    font-size: 0.78rem;
+    color: var(--rose);
+}
+
+.lb-unit {
+    font-size: 0.85rem;
+    font-weight: 500;
 }
 
 .lb-empty {
@@ -604,6 +641,65 @@ body {
 
 .result-actions-row .btn {
     min-width: 170px;
+}
+
+/* ── Results screen large display ───────────────────── */
+.results-header-bar {
+    padding-top: 1.25rem;
+    padding-bottom: 1rem;
+}
+
+.results-header-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    opacity: 0.95;
+}
+
+.results-question-counter {
+    font-size: 1.15rem;
+    opacity: 0.85;
+    font-weight: 700;
+}
+
+.results-intro-text {
+    font-size: 1.3rem;
+}
+
+.results-intro-subtext {
+    font-size: 1.12rem;
+}
+
+.results-main-btn {
+    font-size: 1.2rem;
+    padding: 0.9rem 2rem;
+}
+
+.results-question-text {
+    font-size: 1.6rem;
+    line-height: 1.6;
+}
+
+.results-screen .result-row-option {
+    font-size: 1.15rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.results-screen .result-row-option .option-letter {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    font-size: 1rem;
+}
+
+.results-screen .vote-chart-value {
+    font-size: 1.02rem;
+}
+
+.results-screen .result-actions-row .btn {
+    font-size: 1.12rem;
+    min-width: 210px;
+    padding: 0.8rem 1.25rem;
 }
 
 /* ── Leaderboard reveal ─────────────────────────────── */

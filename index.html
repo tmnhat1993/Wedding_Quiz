@@ -39,7 +39,7 @@
                         🎊 Hỏi đáp vui
                     </h4>
                     <p id="welcomeShort" class="text-center mb-2" style="font-size:0.95rem;color:var(--dark);font-weight:600;line-height:1.45;">
-                        Chào mừng quý khách đến với mini game thứ 2
+                        Chào mừng quý khách đến với phần hỏi đáp vui
                     </p>
                     <p id="welcomeExtended" class="text-center text-muted mb-3" style="font-size:0.9rem;line-height:1.55;display:none;">
                         Trong tiệc hôm nay, để vào trò chơi quý khách vui lòng quét mã QR hoặc mở đúng đường dẫn như trên màn hình sự kiện, rồi nhập tên của mình. Khi đã nhập xong, xin chờ ban tổ chức mở game trong giây lát — chúc quý khách chơi vui và may mắn!
@@ -187,8 +187,20 @@
             }
             inp.classList.remove('is-invalid');
             sessionStorage.setItem('playerName', name);
-            window.location.href = 'quiz.html';
+            ensureWeddingQuizPlayerTag()
+                .then(tag => {
+                    sessionStorage.setItem('playerTag', tag);
+                    window.location.href = 'quiz.html';
+                })
+                .catch(() => {
+                    window.location.href = 'quiz.html';
+                });
         };
+
+        const storedTag = getStoredWeddingQuizPlayerTag();
+        if (storedTag) {
+            sessionStorage.setItem('playerTag', storedTag);
+        }
     });
 
     // Floating petals

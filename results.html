@@ -16,14 +16,14 @@
 </head>
 <body>
 
-<div class="container py-4">
+<div class="container py-4 results-screen">
     <div class="row justify-content-center">
         <div class="col-12">
             <div class="wedding-card">
-                <div id="resultHeaderBar" class="quiz-header" style="display:none;">
+                    <div id="resultHeaderBar" class="quiz-header results-header-bar" style="display:none;">
                     <div class="position-relative text-center mb-2">
-                        <span id="resultHeaderTitle" style="font-size:18px;font-weight:800;opacity:0.95;display:none;">Kết Quả</span>
-                        <span id="resultQuestionCounter" style="font-size:0.85rem;opacity:0.75;position:absolute;right:0;top:50%;transform:translateY(-50%);">Câu 1 / 10</span>
+                        <span id="resultHeaderTitle" class="results-header-title" style="display:none;">Kết Quả</span>
+                        <span id="resultQuestionCounter" class="results-question-counter" style="position:absolute;right:0;top:50%;transform:translateY(-50%);">Câu 1 / 10</span>
                     </div>
                     <div class="progress">
                         <div id="resultProgressBar" class="progress-bar" style="width:0%"></div>
@@ -38,10 +38,10 @@
                             <h2 class="wedding-title mb-0">Minh Kiệt</h2>
                             <p class="wedding-date mt-2 mb-0">10 · 05 · 2026</p>
                         </div>
-                        <p class="mb-2" style="font-size:0.95rem;color:var(--dark);font-weight:600;line-height:1.45;">
-                            Chào mừng quý khách đến với mini game thứ 2
+                        <p class="mb-2 results-intro-text" style="color:var(--dark);font-weight:600;line-height:1.45;">
+                            Chào mừng quý khách đến với phần hỏi đáp vui
                         </p>
-                        <p class="text-muted mb-3" style="font-size:0.9rem;line-height:1.55;">
+                        <p class="text-muted mb-3 results-intro-subtext" style="line-height:1.55;">
                             Trong tiệc hôm nay, để vào trò chơi quý khách vui lòng quét mã QR<br>
                             hoặc mở đúng đường dẫn như trên màn hình sự kiện, rồi nhập tên của mình.<br>
                             chúc quý khách chơi vui và may mắn!
@@ -53,13 +53,13 @@
                                 style="width:150px;height:150px;border-radius:12px;border:1px solid #f0dde2;padding:6px;background:#fff;"
                             >
                         </div>
-                        <button id="startCheckAnswersBtn" class="btn btn-wedding px-4">
+                        <button id="startCheckAnswersBtn" class="btn btn-wedding px-4 results-main-btn">
                             <i class="bi bi-search-heart me-1"></i>Kiểm tra đáp án
                         </button>
                     </div>
 
                     <div id="resultFlow" style="display:none;">
-                        <p id="resultQuestionText" class="question-text mb-3">Đang tải câu hỏi…</p>
+                        <p id="resultQuestionText" class="question-text mb-3 results-question-text">Đang tải câu hỏi…</p>
                         <div id="resultRowsContainer"></div>
 
                         <div class="result-actions-row mt-3">

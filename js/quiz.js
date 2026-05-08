@@ -11,6 +11,7 @@ const WRONG_POINTS     = 18;    // sai: cực thấp so với đúng (max ~180 n
 
 let state = {
     playerName:        '',
+    playerTag:         '',
     roundEpoch:        0,
     currentIndex:      0,
     score:             0,
@@ -28,7 +29,9 @@ function initQuiz() {
     bindNextQuestionButton();
 
     const savedName = sessionStorage.getItem('playerName');
+    const savedTag = sessionStorage.getItem('playerTag') || '';
     state.playerName = savedName || 'bạn';
+    state.playerTag = savedTag;
 
     function beginOrRedirect(gameStatus) {
         const isEnded = gameStatus === QUIZ_STATUS_ENDED;
@@ -40,7 +43,8 @@ function initQuiz() {
             window.location.href = 'index.html';
             return;
         }
-        document.getElementById('playerNameDisplay').textContent = state.playerName;
+        document.getElementById('playerNameDisplay').textContent =
+            buildPlayerDisplayName(state.playerName, state.playerTag);
         showQuestion(0);
     }
 
@@ -77,7 +81,7 @@ function showFinalScreenOnly() {
     const result = document.getElementById('resultScreen');
     result.style.display = 'block';
     const nameEl = document.getElementById('resultName');
-    if (nameEl) nameEl.textContent = state.playerName;
+    if (nameEl) nameEl.textContent = buildPlayerDisplayName(state.playerName, state.playerTag);
 }
 
 // ── Show question ──────────────────────────────────────
@@ -314,7 +318,7 @@ function endQuiz() {
     result.style.display = 'block';
 
     const nameEl = document.getElementById('resultName');
-    if (nameEl) nameEl.textContent = state.playerName;
+    if (nameEl) nameEl.textContent = buildPlayerDisplayName(state.playerName, state.playerTag);
 
     weddingQuizRememberPlayed(state.roundEpoch);
     saveScore();
@@ -325,6 +329,7 @@ function saveScore() {
     const totalTimeSec = state.totalTimeMs / 1000;
     const data = {
         name:           state.playerName,
+        playerTag:      state.playerTag || null,
         score:          state.score,
         totalTime:      Math.round(totalTimeSec * 1000) / 1000,
         correctAnswers: state.correctCount,
@@ -337,4 +342,8 @@ function saveScore() {
             sessionStorage.setItem('lastScoreId', docRef.id);
         })
         .catch(err => console.error('Firebase save error:', err));
+}
+
+function buildPlayerDisplayName(name, tag) {
+    return tag ? `${name} ${tag}` : name;
 }
