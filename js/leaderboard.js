@@ -4,13 +4,10 @@
 
 const currentPlayerName = sessionStorage.getItem('playerName') || '';
 const currentPlayerTag  = sessionStorage.getItem('playerTag') || '';
-const POLL_INTERVAL_MS  = 15000;
 const LEADERBOARD_TOP_N = 10;
-let   pollTimer         = null;
 
 function initLeaderboard() {
     fetchScores();
-    pollTimer = setInterval(fetchScores, POLL_INTERVAL_MS);
 }
 
 function fetchScores() {

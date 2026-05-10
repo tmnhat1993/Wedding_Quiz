@@ -129,7 +129,7 @@ Dùng chung với `localStorage` key `weddingQuiz_lastPlayedEpoch` (trong `quiz-
 
 ## Leaderboard (`js/leaderboard.js`)
 
-- `get()` (không `onSnapshot`), **poll mỗi 15s**, không giới hạn số lần.
+- `get()` một lần khi load trang (không `onSnapshot`, không auto-refresh); ban tổ chức reload tay khi cần cập nhật.
 - **Không** spinner / chữ “Đang tải” / “Cập nhật tự động” / “Lần tải”.
 - `getBestPerPlayer()` → sort điểm giảm, thời gian tăng; top **20**.
 - `#totalPlayers`: căn giữa, **font-size 18px** (class `.lb-total-players`).
